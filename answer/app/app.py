@@ -1,7 +1,11 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
+from dotenv import load_dotenv
 from routes.books import books_bp
 from routes.reviews import reviews_bp
+
+# .env ファイルから環境変数を読み込む
+load_dotenv()
 
 app = Flask(__name__)
 
