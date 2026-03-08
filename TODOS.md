@@ -86,32 +86,32 @@
 
 ### 3-1. プロジェクト基盤
 
-- [ ] `create-react-app` or Vite で React プロジェクトを作成
-- [ ] `src/types.ts` に型定義を作成（`Book` / `BookInput` / `Review` / `ReviewInput`）
-- [ ] `src/api.ts` に fetch ラッパーを実装（全 7 エンドポイント）
-- [ ] React Router を導入（`/` と `/books/:id` のルーティング）
+- [x] `create-react-app` or Vite で React プロジェクトを作成
+- [x] `src/types.ts` に型定義を作成（`Book` / `BookInput` / `Review` / `ReviewInput`）
+- [x] `src/api.ts` に fetch ラッパーを実装（全 7 エンドポイント）
+- [x] React Router を導入（`/` と `/books/:id` のルーティング）
 
 ### 3-2. BooksPage（書籍一覧画面）
 
-- [ ] `BooksPage` — `GET /books` で書籍一覧を取得・表示
-- [ ] `BookList` — 書籍カードの一覧表示
-- [ ] `BookCard` — 書籍タイトル・著者を表示、クリックで詳細画面へ遷移
-- [ ] `BookForm` — タイトル・著者・紹介文の入力フォーム、`POST /books` を呼ぶ
+- [x] `BooksPage` — `GET /books` で書籍一覧を取得・表示
+- [x] `BookList` — 書籍カードの一覧表示
+- [x] `BookCard` — 書籍タイトル・著者を表示、クリックで詳細画面へ遷移
+- [x] `BookForm` — タイトル・著者・紹介文の入力フォーム、`POST /books` を呼ぶ
 
 ### 3-3. BookDetailPage（書籍詳細画面）
 
-- [ ] `BookDetailPage` — `GET /books/:id` と `GET /books/:id/reviews` を並列取得
-- [ ] `BookDetail` — 書籍情報の表示・編集フォーム（`PUT`）・削除ボタン（`DELETE`）
-- [ ] `ReviewList` — レビューカードの一覧表示
-- [ ] `ReviewCard` — レビュアー名・評価・コメントを表示
-- [ ] `ReviewForm` — レビュアー名・評価（1〜5）・コメントの入力フォーム、`POST /reviews` を呼ぶ
+- [x] `BookDetailPage` — `GET /books/:id` と `GET /books/:id/reviews` を並列取得
+- [x] `BookDetail` — 書籍情報の表示・編集フォーム（`PUT`）・削除ボタン（`DELETE`）
+- [x] `ReviewList` — レビューカードの一覧表示
+- [x] `ReviewCard` — レビュアー名・評価・コメントを表示
+- [x] `ReviewForm` — レビュアー名・評価（1〜5）・コメントの入力フォーム、`POST /reviews` を呼ぶ
 
 ### 3-4. UX 仕上げ
 
-- [ ] ローディング中のフィードバック表示（`loading` state）
-- [ ] API エラー時のエラーメッセージ表示（`error` state）
-- [ ] 書籍削除後に一覧画面へリダイレクト
-- [ ] 最低限のスタイリング（CSS or Tailwind）
+- [x] ローディング中のフィードバック表示（`loading` state）
+- [x] API エラー時のエラーメッセージ表示（`error` state）
+- [x] 書籍削除後に一覧画面へリダイレクト
+- [x] 最低限のスタイリング（CSS or Tailwind）
 
 ---
 
