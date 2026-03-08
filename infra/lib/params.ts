@@ -8,7 +8,7 @@ export const common = {
   /** プロジェクト名（リソース名のプレフィックスに使用） */
   projectName: 'book-review-api',
   /** デプロイ先アカウント */
-  account: '',
+  account: '123456789012',
   /** デプロイ先リージョン */
   region: 'ap-northeast-1',
   /** 学習者のユーザー名リスト */
