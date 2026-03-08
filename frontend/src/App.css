@@ -268,6 +268,20 @@
   font-size: 0.95em;
 }
 
+/* Footer */
+.app-footer {
+  text-align: center;
+  padding: 2rem 1.5rem;
+  margin-top: 3rem;
+  border-top: 1px solid #e2e8f0;
+  color: #94a3b8;
+  font-size: 0.85em;
+}
+
+.app-footer p {
+  margin: 0;
+}
+
 hr {
   border: none;
   border-top: 1px solid #e2e8f0;

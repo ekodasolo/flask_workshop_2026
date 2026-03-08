@@ -35,6 +35,9 @@ function App() {
           <Route path="/books/:id" element={<BookDetailPage />} />
         </Routes>
       </main>
+      <footer className="app-footer">
+        <p>Book Review API &mdash; Flask + DynamoDB Workshop</p>
+      </footer>
     </div>
   );
 }
