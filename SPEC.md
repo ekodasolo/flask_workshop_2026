@@ -74,12 +74,62 @@ app/
 
 **テーブル名:** `book-review-api-<username>`
 
+### キー設計
+
 | PK | SK | 用途 |
 |---|---|---|
 | `BOOK#<book_id>` | `METADATA` | 書籍レコード |
 | `BOOK#<book_id>` | `REVIEW#<review_id>` | レビューレコード |
 
-シングルテーブル設計。書籍の存在確認は `get_item(PK, SK=METADATA)` で行う。
+シングルテーブル設計。1 つのテーブルに書籍とレビューの両方を格納する。
+
+### データの流れ — 具体例で理解する
+
+#### Step 1: 書籍を 2 冊登録する
+
+「Clean Code」と「リーダブルコード」を登録すると、テーブルには以下のアイテムが入る:
+
+| PK | SK | title | author | description | created_at |
+|---|---|---|---|---|---|
+| `BOOK#aaa-111` | `METADATA` | Clean Code | Robert C. Martin | 読みやすいコードの書き方 | 2024-01-15T10:00:00Z |
+| `BOOK#bbb-222` | `METADATA` | リーダブルコード | Dustin Boswell | より良いコードを書くためのテクニック | 2024-01-15T11:00:00Z |
+
+- PK の `BOOK#aaa-111` は `BOOK#` + UUID で構成される
+- SK は書籍自体の情報なので固定値 `METADATA`
+
+#### Step 2: 「Clean Code」にレビューを 2 件投稿する
+
+Yohei と Tanaka がレビューを投稿すると、同じテーブルに以下のアイテムが追加される:
+
+| PK | SK | reviewer | rating | comment | created_at |
+|---|---|---|---|---|---|
+| `BOOK#aaa-111` | `REVIEW#ccc-333` | Yohei | 5 | 実務で即使える内容でした | 2024-01-20T14:00:00Z |
+| `BOOK#aaa-111` | `REVIEW#ddd-444` | Tanaka | 4 | 初心者にもおすすめ | 2024-01-21T09:00:00Z |
+
+- PK は書籍と同じ `BOOK#aaa-111`（どの書籍のレビューかを示す）
+- SK は `REVIEW#` + UUID で、書籍本体（`METADATA`）と区別する
+
+#### Step 3: この時点でのテーブル全体像
+
+| PK | SK | 主要な属性 |
+|---|---|---|
+| `BOOK#aaa-111` | `METADATA` | title=Clean Code, author=Robert C. Martin |
+| `BOOK#aaa-111` | `REVIEW#ccc-333` | reviewer=Yohei, rating=5 |
+| `BOOK#aaa-111` | `REVIEW#ddd-444` | reviewer=Tanaka, rating=4 |
+| `BOOK#bbb-222` | `METADATA` | title=リーダブルコード, author=Dustin Boswell |
+
+### アクセスパターンとキーの関係
+
+上記のテーブル内容に対して、各 API がどうデータを取得するかを示す:
+
+| やりたいこと | 操作 | 条件 |
+|---|---|---|
+| 書籍一覧を取得 | `scan` | SK が `METADATA` のアイテムを抽出 |
+| 特定の書籍を取得 | `get_item` | PK=`BOOK#aaa-111`, SK=`METADATA` |
+| 書籍のレビュー一覧を取得 | `query` | PK=`BOOK#aaa-111`, SK が `REVIEW#` で始まる |
+| 書籍の存在確認 | `get_item` | PK=`BOOK#<id>`, SK=`METADATA` で Item の有無を確認 |
+
+**ポイント**: `query` は PK を指定してそのパーティション内だけを検索するので、`scan`（テーブル全件走査）より効率的。レビュー取得では `begins_with('REVIEW#')` を使うことで、同じ PK の `METADATA` を除外してレビューだけを取得できる。
 
 ---
 
