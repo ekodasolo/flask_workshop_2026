@@ -19,12 +19,13 @@ function App() {
       <header className="app-header">
         <h1 onClick={() => window.location.href = '/'}>Book Review</h1>
         <div className="api-url-config">
+          {!apiUrl && <span className="mock-badge">Mock Mode</span>}
           <label>API URL: </label>
           <input
             type="text"
             value={apiUrl}
             onChange={(e) => handleApiUrlChange(e.target.value)}
-            placeholder="http://localhost:5000"
+            placeholder="未設定 = モックモード"
           />
         </div>
       </header>
