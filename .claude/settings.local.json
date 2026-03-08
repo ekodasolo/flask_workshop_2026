@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git init /Users/fujiwara_y/Coworks/sandbox/flask_workshop)",
+      "Bash(git -C /Users/fujiwara_y/Coworks/sandbox/flask_workshop add .gitignore CLAUDE.md SPEC.md TODOS.md ISSUES.md KNOWLEDGE.md answer/)",
+      "Bash(git -C:*)",
+      "Bash(npm create vite@latest frontend-tmp -- --template react-ts)",
+      "Bash(npm install)",
+      "Bash(npm install react-router-dom)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(npm run build)",
+      "Bash(git add infra/bin/infra.ts)",
+      "Bash(git commit:*)"
+    ]
+  }
+}

@@ -52,6 +52,7 @@
 - [x] CDK TypeScript プロジェクトを `infra/` に作成
 - [x] コンストラクト分割: network / database / ecr / application
 - [x] スタック定義（`InfraStack`）と context による学習者リスト管理
+- [x] env の解決優先順位を実装（CDK コンテキスト → 環境変数 → デフォルト値）
 - [ ] 各コンストラクトの実装
 
 ### 2-1. EC2 / Code Server（手動）
