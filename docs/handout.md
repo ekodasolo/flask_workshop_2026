@@ -16,6 +16,80 @@
 
 ---
 
+## Flask で REST API を作るということ
+
+### REST API の仕組み
+
+REST API は「**URL** + **HTTP メソッド**」の組み合わせで操作を表現します。
+
+```
+GET    /api/v1/books          → 書籍一覧を取得する
+POST   /api/v1/books          → 書籍を登録する
+GET    /api/v1/books/aaa-111   → 特定の書籍を取得する
+PUT    /api/v1/books/aaa-111   → 特定の書籍を更新する
+DELETE /api/v1/books/aaa-111   → 特定の書籍を削除する
+```
+
+同じ `/api/v1/books` という URL でも、HTTP メソッド（GET / POST / PUT / DELETE）が違えば異なる操作になります。
+
+### Flask の役割 — URL とメソッドを Python 関数にマッピングする
+
+Flask は「この URL にこの HTTP メソッドでリクエストが来たら、この Python 関数を呼ぶ」という対応付け（**ルーティング**）を行うフレームワークです。
+
+```python
+@books_bp.route('/books', methods=['GET'])
+def list_books():
+    # GET /books が来たらこの関数が呼ばれる
+    ...
+
+@books_bp.route('/books', methods=['POST'])
+def create_book():
+    # POST /books が来たらこの関数が呼ばれる
+    ...
+```
+
+`@books_bp.route(...)` は **デコレータ** と呼ばれる Python の構文で、直下の関数に「この URL パターン + HTTP メソッドの担当ですよ」というメタ情報を付けます。
+
+### リクエストとレスポンスの流れ
+
+```
+クライアント（curl / React）                Flask アプリ
+        │                                    │
+        │  POST /api/v1/books               │
+        │  {"title": "Clean Code", ...}      │
+        │ ─────────────────────────────────→ │
+        │                                    │  create_book() 関数が呼ばれる
+        │                                    │  ↓ request.get_json() でボディを取得
+        │                                    │  ↓ DynamoDB に書き込み
+        │                                    │  ↓ jsonify(book) でレスポンスを作成
+        │  201 Created                       │
+        │  {"book_id": "aaa-111", ...}       │
+        │ ←───────────────────────────────── │
+```
+
+Flask では以下のオブジェクトを使ってリクエストとレスポンスを扱います:
+
+| オブジェクト | 役割 | 使い方 |
+|---|---|---|
+| `request` | クライアントから送られたデータを読む | `request.get_json()` でボディを辞書として取得 |
+| `jsonify()` | Python の辞書を JSON レスポンスに変換する | `return jsonify({'books': [...]})` |
+| ステータスコード | レスポンスの結果を数値で伝える | `return jsonify(book), 201` |
+
+### Blueprint — ルーティングをファイルに分割する
+
+全てのルートを `app.py` 1 ファイルに書くと管理が大変です。Flask の **Blueprint** を使うと、リソース（書籍・レビュー）ごとにルーティングを別ファイルに分割できます。
+
+```
+app.py          ← Flask 本体。Blueprint を束ねる
+routes/
+  books.py      ← 書籍関連のルート（books_bp）
+  reviews.py    ← レビュー関連のルート（reviews_bp）
+```
+
+`app.py` で Blueprint を登録する際に `url_prefix='/api/v1'` を付けると、各 Blueprint 内の `/books` が自動的に `/api/v1/books` になります。
+
+---
+
 ## 0. 環境確認（10 分）
 
 > **SPEC.md を確認**: 「概要」「システム構成」「ディレクトリ構成」セクションを読んで、今日作るものの全体像を把握してください。
@@ -66,17 +140,23 @@ pip install -r requirements.txt
 
 まずは Flask アプリを起動して動作確認します。
 
-### 1-1. app.py の TODO を確認する
+### 1-1. app.py の構成を理解する
 
-`app.py` を開いてください。TODO が 1 つあります:
+`app.py` を開いてください。既に書かれているコードを確認しましょう。
 
-- **Blueprint の登録** — `books_bp` と `reviews_bp` を import して `app.register_blueprint()` で登録する
+```python
+app = Flask(__name__)    # Flask アプリケーションのインスタンスを作成
+CORS(app)                # 全オリジンからのアクセスを許可（React UI から呼べるようにする）
+```
 
-> エラーハンドラー（`@app.errorhandler(404)` / `@app.errorhandler(500)`）は提供済みです。コードを読んで、どのような処理をしているか確認しておきましょう。
+- **`Flask(__name__)`** — Flask アプリの本体を作る。`__name__` はPython のモジュール名で、Flask がテンプレートや静的ファイルの場所を見つけるために使います
+- **`CORS(app)`** — ブラウザのセキュリティ制約（同一オリジンポリシー）を解除し、React UI など別ドメインからの API 呼び出しを許可する設定
+
+エラーハンドラー（`@app.errorhandler(404)` / `@app.errorhandler(500)`）は提供済みです。コードを読んで、どのような処理をしているか確認しておきましょう。これらの仕組みはチャプター 4 で詳しく学びます。
 
 ### 1-2. Blueprint を登録する
 
-`app.py` の TODO セクションに以下を追加してください:
+TODO が 1 つあります。`app.py` の TODO セクションに以下を追加してください:
 
 ```python
 from routes.books import books_bp
@@ -86,7 +166,19 @@ app.register_blueprint(books_bp, url_prefix='/api/v1')
 app.register_blueprint(reviews_bp, url_prefix='/api/v1')
 ```
 
-**ポイント**: `url_prefix='/api/v1'` を指定すると、各 Blueprint 内の `/books` は `/api/v1/books` としてアクセスできるようになります。
+**Flask 解説 — Blueprint の登録とは**:
+
+`register_blueprint()` は「この Blueprint に定義されたルートを、Flask アプリに組み込む」という操作です。
+
+```
+books.py で定義:    @books_bp.route('/books', ...)
+                                      ↓
+app.py で登録:      url_prefix='/api/v1' を付与
+                                      ↓
+実際の URL:         /api/v1/books
+```
+
+`url_prefix` を変えるだけで、同じ Blueprint を `/api/v1/books` にも `/api/v2/books` にもマウントできます。API のバージョン管理に便利です。
 
 ### 1-3. Flask を起動して動作確認する
 
@@ -116,6 +208,33 @@ curl -s http://localhost:5000/api/v1/books | python -m json.tool
 
 このパートでは、`routes/books.py` を開いて 5 つのエンドポイントを実装します。
 ファイルには各関数の雛形と TODO コメントが用意されているので、コメントの指示に従ってコードを書いていきましょう。
+
+### Flask 解説 — ルートの書き方
+
+このパートで初めて Flask のルート関数を書きます。ルート関数の基本構造を理解しましょう。
+
+```python
+@books_bp.route('/books', methods=['GET'])   # ← どの URL・メソッドに反応するか
+def list_books():                             # ← 関数名は自由（分かりやすい名前を付ける）
+    # ... 処理 ...
+    return jsonify({'books': [...]})          # ← JSON レスポンスを返す
+```
+
+**`methods` パラメータ** で、同じ URL でも異なる操作を割り当てられます:
+
+| デコレータ | 意味 |
+|---|---|
+| `@route('/books', methods=['GET'])` | 一覧を**取得**するリクエストを処理 |
+| `@route('/books', methods=['POST'])` | 新規**登録**するリクエストを処理 |
+| `@route('/books/<book_id>', methods=['PUT'])` | 既存データを**更新**するリクエストを処理 |
+| `@route('/books/<book_id>', methods=['DELETE'])` | データを**削除**するリクエストを処理 |
+
+**URL パラメータ `<book_id>`**: URL の一部を `< >` で囲むと、Flask がその部分を変数として関数に渡します。`/books/aaa-111` にアクセスすると `book_id = 'aaa-111'` になります。
+
+**レスポンスの返し方**:
+- `return jsonify(data)` — ステータスコード `200 OK` で返す（デフォルト）
+- `return jsonify(data), 201` — ステータスコード `201 Created` で返す（新規作成時）
+- `return jsonify({'error': '...'}), 400` — ステータスコード `400 Bad Request` で返す（バリデーションエラー時）
 
 ### このパートで使う boto3 の操作
 
@@ -444,6 +563,27 @@ curl -s http://localhost:5000/api/v1/books | python -m json.tool
 
 このパートでは `routes/reviews.py` を開いて、2 つのエンドポイントを実装します。
 
+### Flask 解説 — ネストしたルート
+
+パート 2 では `/books` や `/books/<book_id>` というルートを定義しました。レビューは「書籍に属するリソース」なので、URL にも親子関係を反映させます。
+
+```python
+# パート 2 のルート（書籍）
+@books_bp.route('/books/<book_id>', ...)
+
+# パート 3 のルート（レビュー = 書籍の子リソース）
+@reviews_bp.route('/books/<book_id>/reviews', ...)
+```
+
+`/books/<book_id>/reviews` という URL は「book_id で指定された書籍のレビュー一覧」を意味します。Flask は `<book_id>` の部分を自動的に関数の引数として渡します。
+
+```python
+def list_reviews(book_id):   # ← URL の <book_id> がここに入る
+    # book_id を使って、この書籍に紐づくレビューを取得する
+```
+
+このように URL で親子関係を表現するのは、REST API の設計原則です。
+
 ### このパートの新しい概念
 
 パート 2 では `scan` と `get_item` でデータを取得しましたが、このパートでは **`query`** という新しい操作を使います。
@@ -601,6 +741,34 @@ curl -s http://localhost:5000/api/v1/books/nonexistent-id/reviews | python -m js
 > **SPEC.md を確認**: 「エラーハンドリング方針」セクションで、4 つのレイヤー（バリデーション / リソース確認 / DynamoDB 例外 / 未捕捉例外）の全体像を確認してください。
 
 ここまでの実装で、エラーハンドリングも既に含まれています。このパートでは、エラーハンドリングの仕組みを整理し、正しく動作するか確認します。
+
+### Flask 解説 — エラーを返す 2 つの方法
+
+Flask でエラーレスポンスを返す方法は大きく 2 つあります。
+
+**方法 1: `return` でステータスコードを指定する**
+
+```python
+return jsonify({'error': 'Book not found'}), 404
+```
+
+`jsonify()` の第 2 戻り値としてステータスコードを返します。この方法は**エラーメッセージをカスタマイズしたい場合**に使います。パート 2〜3 のバリデーションや 404 チェックではこの方法を使いました。
+
+**方法 2: `abort()` でエラーを発生させる**
+
+```python
+abort(500)
+```
+
+`abort()` は例外を発生させて処理を中断します。`@app.errorhandler` で定義したハンドラーがこの例外を受け取り、レスポンスを生成します。この方法は**共通のエラーレスポンスを返したい場合**に使います。パート 2〜3 の `try-except` 内で `abort(500)` を使いました。
+
+```
+abort(500) が呼ばれる
+    ↓ Flask が例外をキャッチ
+@app.errorhandler(500) が呼ばれる
+    ↓
+{"error": "Internal server error"} を返す
+```
 
 ### エラーハンドリングの全体像
 
