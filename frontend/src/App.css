@@ -7,10 +7,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 1.5rem;
-  background-color: #1e293b;
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
   color: white;
   width: 100%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .app main {
@@ -22,6 +23,7 @@
   margin: 0;
   font-size: 1.3em;
   cursor: pointer;
+  letter-spacing: -0.01em;
 }
 
 .api-url-config {
@@ -35,25 +37,43 @@
   width: 250px;
   padding: 0.3em 0.5em;
   font-size: 0.9em;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.api-url-config input:focus {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(129, 140, 248, 0.6);
+  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.15);
+}
+
+.api-url-config input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .mock-badge {
   background-color: #f59e0b;
   color: #1e293b;
-  padding: 0.15em 0.5em;
-  border-radius: 4px;
+  padding: 0.2em 0.6em;
+  border-radius: 6px;
   font-size: 0.75em;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
 
 /* Page */
 .page {
-  padding: 1.5rem;
+  padding: 2rem 1.5rem;
 }
 
 .page h1 {
   margin-top: 0;
-  font-size: 1.5em;
+  font-size: 1.6em;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #0f172a;
 }
 
 /* Book Card */
@@ -64,45 +84,56 @@
 
 .book-card {
   background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.2rem 1.4rem;
   cursor: pointer;
-  transition: box-shadow 0.2s;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .book-card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: #c7d2fe;
+  transform: translateY(-2px);
 }
 
 .book-card h3 {
   margin: 0 0 0.3rem;
+  font-weight: 650;
+  color: #1e293b;
 }
 
 .book-author {
-  color: #6b7280;
+  color: #64748b;
   margin: 0 0 0.5rem;
+  font-size: 0.9em;
 }
 
 .book-description {
   margin: 0;
   font-size: 0.9em;
+  color: #475569;
+  line-height: 1.5;
 }
 
 /* Book Detail */
 .book-detail {
   background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 1.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.8rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .book-detail h2 {
   margin-top: 0;
+  font-weight: 700;
+  color: #0f172a;
 }
 
 .book-date {
-  color: #9ca3af;
+  color: #94a3b8;
   font-size: 0.85em;
 }
 
@@ -111,25 +142,28 @@
   flex-direction: column;
   gap: 0.8rem;
   background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 1.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.8rem;
 }
 
 /* Forms */
 .book-form, .review-form {
   background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .book-form h3, .review-form h3 {
   margin: 0;
+  font-weight: 650;
+  color: #1e293b;
 }
 
 .rating-input {
@@ -157,9 +191,10 @@
 
 .review-card {
   background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.2rem 1.4rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .review-header {
@@ -170,19 +205,23 @@
 }
 
 .reviewer {
-  font-weight: 600;
+  font-weight: 650;
+  color: #1e293b;
 }
 
 .rating {
   color: #f59e0b;
+  font-size: 1.05em;
 }
 
 .review-comment {
   margin: 0 0 0.5rem;
+  color: #475569;
+  line-height: 1.5;
 }
 
 .review-date {
-  color: #9ca3af;
+  color: #94a3b8;
   font-size: 0.85em;
   margin: 0;
 }
@@ -195,36 +234,42 @@
   padding: 0;
   margin-bottom: 1rem;
   font-size: 0.9em;
+  box-shadow: none;
 }
 
 .back-button:hover {
   background: none;
   text-decoration: underline;
+  box-shadow: none;
+  transform: none;
 }
 
 /* States */
 .loading {
   text-align: center;
-  color: #6b7280;
-  padding: 2rem;
+  color: #64748b;
+  padding: 3rem;
+  font-size: 0.95em;
 }
 
 .error-message {
   background-color: #fef2f2;
   color: #dc2626;
   border: 1px solid #fecaca;
-  border-radius: 6px;
-  padding: 0.8rem;
+  border-radius: 10px;
+  padding: 0.8rem 1rem;
+  font-size: 0.9em;
 }
 
 .empty-message {
   text-align: center;
-  color: #9ca3af;
-  padding: 2rem;
+  color: #94a3b8;
+  padding: 3rem;
+  font-size: 0.95em;
 }
 
 hr {
   border: none;
-  border-top: 1px solid #e5e7eb;
-  margin: 1.5rem 0;
+  border-top: 1px solid #e2e8f0;
+  margin: 2rem 0;
 }
