@@ -28,8 +28,7 @@ flask_workshop/
 ├── frontend/            デモ用 React フロントエンド
 ├── infra/               AWS CDK（TypeScript）によるインフラ定義
 ├── docs/                手順書・講師ガイド
-│   ├── handout.md         学習者向け手順書
-│   ├── api-spec.md        API 仕様書
+│   ├── handout.md           学習者向け手順書（API 仕様を含む）
 │   └── instructor-guide.md  講師用進行ガイド
 ├── SPEC.md              ハンズオン全体仕様
 ├── TODOS.md             タスク管理
@@ -58,8 +57,7 @@ flask_workshop/
 
 ## 学習者向けドキュメント
 
-- `docs/handout.md` — ステップバイステップの実装手順書
-- `docs/api-spec.md` — API エンドポイントの仕様
+- `docs/handout.md` — ステップバイステップの実装手順書（API 仕様を含む）
 
 ## 講師向けドキュメント
 

@@ -126,7 +126,7 @@
 ## 4. ドキュメント・配布物
 
 - [x] `SPEC.md` — ハンズオン全体仕様
-- [x] `api-spec.md` — API 仕様書（学習者配布用）
+- [x] API 仕様 — 手順書（`docs/handout.md`）に統合済み
 - [x] バックエンド骨格コード（`app.py` / `routes/books.py` / `routes/reviews.py` / `db/dynamo.py`）
 - [x] `Dockerfile` 完成形（学習者配布用）
 - [x] `requirements.txt` 完成形（学習者配布用）
