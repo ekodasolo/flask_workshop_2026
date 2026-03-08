@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 import * as cdk from 'aws-cdk-lib';
 import { InfraStack } from '../lib/infra-stack';
-import { REGION, USERNAMES, DEPLOY_USERNAME, TABLE_NAME_PREFIX } from '../lib/const';
+import { common, application } from '../lib/params';
 
 const app = new cdk.App();
 
 new InfraStack(app, 'BookReviewWorkshopStack', {
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT,
-    region: REGION,
+    region: common.region,
   },
-  usernames: USERNAMES,
-  tableName: `${TABLE_NAME_PREFIX}-${DEPLOY_USERNAME}`,
+  usernames: common.usernames,
+  tableName: application.tableName,
 });
