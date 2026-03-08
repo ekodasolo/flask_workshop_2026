@@ -1,5 +1,6 @@
 import { Construct } from 'constructs';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
+import { database as params } from '../params';
 
 export interface DatabaseProps {
   /** 学習者のユーザー名リスト（テーブルを人数分作成する） */
@@ -18,6 +19,7 @@ export class Database extends Construct {
     super(scope, id);
 
     // TODO: 学習者人数分の DynamoDB テーブルを作成する
+    // テーブル名: `${params.tableNamePrefix}-${username}`
     this.tables = [];
   }
 }

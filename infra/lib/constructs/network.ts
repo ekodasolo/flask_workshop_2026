@@ -1,5 +1,6 @@
 import { Construct } from 'constructs';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import { network as params } from '../params';
 
 export interface NetworkProps {
   // VPC の設定をここに追加する
@@ -16,5 +17,6 @@ export class Network extends Construct {
     super(scope, id);
 
     // TODO: VPC を定義する
+    // params.maxAzs を使用する
   }
 }
