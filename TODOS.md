@@ -83,7 +83,8 @@
 ### 2-5. Amplify（手動）
 
 - [ ] Amplify アプリ作成
-- [ ] 環境変数 `REACT_APP_API_BASE_URL` に ALB の DNS を設定
+- [x] `amplify.yml` ビルド設定ファイルを作成
+- [ ] 環境変数 `VITE_API_BASE_URL` に ALB の DNS を設定
 - [ ] React アプリをビルド・デプロイ
 - [ ] カスタムドメインの設定（任意）
 
@@ -129,8 +130,10 @@
 - [x] バックエンド骨格コード（`app.py` / `routes/books.py` / `routes/reviews.py` / `db/dynamo.py`）
 - [x] `Dockerfile` 完成形（学習者配布用）
 - [x] `requirements.txt` 完成形（学習者配布用）
-- [ ] 手順書（学習者向け）— 環境確認 / 実装ステップ / ECR push / curl 動作確認コマンド集
-- [ ] 講師用進行ガイド — タイムライン・詰まりポイントと対処法・Fargate デプロイ手順
+- [x] 手順書（学習者向け）— 環境確認 / 実装ステップ / ECR push / curl 動作確認コマンド集
+- [x] 講師用進行ガイド — タイムライン・詰まりポイントと対処法・Fargate デプロイ手順
+- [x] `frontend/README.md` — アプリ概要・起動方法・ディレクトリ構成
+- [x] `frontend/docs/react-developer-guide.md` — React 初心者向け開発ガイド
 
 ---
 
