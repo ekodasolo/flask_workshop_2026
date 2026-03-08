@@ -18,6 +18,8 @@
 
 ## 0. 環境確認（10 分）
 
+> **SPEC.md を確認**: 「概要」「システム構成」「ディレクトリ構成」セクションを読んで、今日作るものの全体像を把握してください。
+
 ### 0-1. Code Server にアクセスする
 
 講師から共有された URL にブラウザでアクセスしてください。
@@ -59,6 +61,8 @@ pip install -r requirements.txt
 ---
 
 ## 1. Hello Flask（20 分）
+
+> **SPEC.md を確認**: 「バックエンド設計 > アプリケーション構成」セクションで `app.py` の役割（Flask 初期化・CORS・Blueprint 登録・エラーハンドラー）を確認してください。
 
 まずは Flask アプリを起動して動作確認します。
 
@@ -115,6 +119,11 @@ curl -s http://localhost:5000/api/v1/books | python -m json.tool
 ---
 
 ## 2. Books CRUD（60 分）
+
+> **SPEC.md を確認**: 以下のセクションに目を通してから実装に入りましょう。
+> - 「DynamoDB テーブル設計」 — PK/SK の構造とシングルテーブル設計
+> - 「実装する API エンドポイント > Books」 — 5 つのエンドポイントの一覧
+> - 「リクエスト / レスポンス仕様」の Books 部分 — 各エンドポイントの入出力フォーマット
 
 `routes/books.py` を開いて、5 つのエンドポイントを実装していきます。
 
@@ -363,6 +372,11 @@ curl -s http://localhost:5000/api/v1/books | python -m json.tool
 
 ## 3. Reviews CRUD（40 分）
 
+> **SPEC.md を確認**: 以下のセクションに目を通してから実装に入りましょう。
+> - 「実装する API エンドポイント > Reviews」 — 2 つのエンドポイントの一覧
+> - 「リクエスト / レスポンス仕様」の Reviews 部分 — リクエスト・レスポンスのフォーマットと rating の範囲制約
+> - 「学習ポイントの設計意図 > パート3」 — `query` + `begins_with` と親リソース存在確認の意図
+
 `routes/reviews.py` を開いて、2 つのエンドポイントを実装します。
 
 ### 3-1. GET /api/v1/books/<book_id>/reviews — レビュー一覧取得
@@ -480,6 +494,8 @@ curl -s http://localhost:5000/api/v1/books/<book_id>/reviews | python -m json.to
 
 ## 4. エラーハンドリング確認（20 分）
 
+> **SPEC.md を確認**: 「エラーハンドリング方針」セクションで、4 つのレイヤー（バリデーション / リソース確認 / DynamoDB 例外 / 未捕捉例外）の全体像を確認してください。
+
 ここまでの実装で、エラーハンドリングも含まれています。正しく動作するか確認しましょう。
 
 ### 4-1. バリデーションエラー（400）
@@ -520,6 +536,8 @@ curl -s http://localhost:5000/api/v1/books/nonexistent-id/reviews | python -m js
 ---
 
 ## 5. デプロイ（25 分）
+
+> **SPEC.md を確認**: 「ツールバージョン一覧」セクションで、Docker ベースイメージ（`python:3.13-slim`）と AWS CLI v2 を使うことを確認してください。
 
 完成した API を Docker イメージにビルドし、ECR に push します。
 
