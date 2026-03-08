@@ -115,10 +115,50 @@ app/
 ├── db/
 │   └── dynamo.py       # DynamoDB 接続（実装済み・変更不要）
 ├── requirements.txt    # 依存パッケージ（変更不要）
+├── .env.example        # 環境変数テンプレート
 └── Dockerfile          # Docker 設定（変更不要）
 ```
 
-### 0-4. 環境変数を設定する
+### 0-4. Python 仮想環境を作成する
+
+#### 仮想環境（venv）とは
+
+Python の **仮想環境** は、プロジェクトごとに独立したパッケージ管理空間を作る仕組みです。
+
+```
+仮想環境なし（グローバル）:
+  Python ─── pip install → 全プロジェクトで同じパッケージを共有
+  問題: プロジェクト A が Flask 2.x、プロジェクト B が Flask 3.x を使いたい → 衝突
+
+仮想環境あり:
+  プロジェクト A ─── .venv/ ─── Flask 2.x（A 専用）
+  プロジェクト B ─── .venv/ ─── Flask 3.x（B 専用）
+  → 互いに影響しない
+```
+
+今回は同じサーバーを複数人で共有するため、仮想環境を使って自分専用の Python 環境を作ります。Python 3 に標準搭載されている `venv` モジュールを使います。
+
+#### 仮想環境を作成して有効化する
+
+```bash
+# 仮想環境を作成する（.venv ディレクトリが作られる）
+python -m venv .venv
+
+# 仮想環境を有効化する
+source .venv/bin/activate
+```
+
+有効化されると、ターミナルのプロンプトの先頭に `(.venv)` と表示されます。
+
+```
+(.venv) user@host:~/app$
+```
+
+> **重要**: ターミナルを開き直したら、毎回 `source .venv/bin/activate` を実行してください。有効化を忘れるとグローバル環境にパッケージがインストールされてしまいます。
+>
+> 仮想環境を抜けたいときは `deactivate` コマンドを実行します（今回のハンズオンでは基本的に抜ける必要はありません）。
+
+### 0-5. 環境変数を設定する
 
 `.env.example` をコピーして `.env` ファイルを作成します。
 
@@ -136,11 +176,13 @@ TABLE_NAME=book-review-api-<あなたのユーザー名>
 >
 > `.env` には接続先やパスワードなどの秘密情報が入ることがあるため、`.gitignore` に含めて Git にコミットしないのが鉄則です。代わりに `.env.example` をテンプレートとして配布します。
 
-### 0-5. 依存パッケージをインストールする
+### 0-6. 依存パッケージをインストールする
 
 ```bash
 pip install -r requirements.txt
 ```
+
+> 仮想環境が有効な状態（プロンプトに `(.venv)` が表示されている状態）で実行してください。パッケージは `.venv/` の中にインストールされ、他の人の環境には影響しません。
 
 ---
 
@@ -1083,7 +1125,12 @@ curl -s -X POST <BASE_URL>/api/v1/books/<book_id>/reviews \
 ModuleNotFoundError: No module named 'flask'
 ```
 
-`pip install -r requirements.txt` を実行してください。
+仮想環境が有効か確認してください。プロンプトに `(.venv)` が表示されていなければ有効化が必要です:
+
+```bash
+source .venv/bin/activate
+pip install -r requirements.txt
+```
 
 ### DynamoDB にアクセスできない
 
