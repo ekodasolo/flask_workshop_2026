@@ -12,34 +12,34 @@
 
 ### 1-1. プロジェクト基盤
 
-- [ ] ディレクトリ構成を作成（`app/`, `routes/`, `db/`）
-- [ ] `requirements.txt` を作成（flask 3.1.3 / flask-cors 6.0.2 / boto3 1.42.x）
-- [ ] `db/dynamo.py` を実装（`get_table()` / 環境変数 `TABLE_NAME` の読み込み）
-- [ ] `app.py` を実装（Flask 初期化 / CORS 設定 / Blueprint 登録 / エラーハンドラー）
+- [x] ディレクトリ構成を作成（`app/`, `routes/`, `db/`）
+- [x] `requirements.txt` を作成（flask 3.1.3 / flask-cors 6.0.2 / boto3 1.42.x）
+- [x] `db/dynamo.py` を実装（`get_table()` / 環境変数 `TABLE_NAME` の読み込み）
+- [x] `app.py` を実装（Flask 初期化 / CORS 設定 / Blueprint 登録 / エラーハンドラー）
 
 ### 1-2. Books エンドポイント
 
-- [ ] `GET /api/v1/books` — scan + SK フィルタで書籍一覧を返す
-- [ ] `POST /api/v1/books` — バリデーション / UUID 生成 / put_item / 201 返却
-- [ ] `GET /api/v1/books/<book_id>` — get_item / 404 ハンドリング
-- [ ] `PUT /api/v1/books/<book_id>` — 存在確認 / update_item / 更新後オブジェクト返却
-- [ ] `DELETE /api/v1/books/<book_id>` — 存在確認 / delete_item
+- [x] `GET /api/v1/books` — scan + SK フィルタで書籍一覧を返す
+- [x] `POST /api/v1/books` — バリデーション / UUID 生成 / put_item / 201 返却
+- [x] `GET /api/v1/books/<book_id>` — get_item / 404 ハンドリング
+- [x] `PUT /api/v1/books/<book_id>` — 存在確認 / update_item / 更新後オブジェクト返却
+- [x] `DELETE /api/v1/books/<book_id>` — 存在確認 / delete_item
 
 ### 1-3. Reviews エンドポイント
 
-- [ ] `GET /api/v1/books/<book_id>/reviews` — 書籍存在確認 / query + begins_with
-- [ ] `POST /api/v1/books/<book_id>/reviews` — 書籍存在確認 / バリデーション / UUID 生成 / put_item / 201 返却
+- [x] `GET /api/v1/books/<book_id>/reviews` — 書籍存在確認 / query + begins_with
+- [x] `POST /api/v1/books/<book_id>/reviews` — 書籍存在確認 / バリデーション / UUID 生成 / put_item / 201 返却
 
 ### 1-4. エラーハンドリング
 
-- [ ] 各エンドポイントに `abort(400)` バリデーションを追加
-- [ ] 各エンドポイントに `abort(404)` リソース確認を追加
-- [ ] boto3 呼び出しを `try-except (BotoCoreError, ClientError)` で囲む
-- [ ] `@app.errorhandler(404)` / `@app.errorhandler(500)` を実装
+- [x] 各エンドポイントに `abort(400)` バリデーションを追加
+- [x] 各エンドポイントに `abort(404)` リソース確認を追加
+- [x] boto3 呼び出しを `try-except (BotoCoreError, ClientError)` で囲む
+- [x] `@app.errorhandler(404)` / `@app.errorhandler(500)` を実装
 
 ### 1-5. コンテナ化
 
-- [ ] `Dockerfile` を作成（`python:3.13-slim` ベース）
+- [x] `Dockerfile` を作成（`python:3.13-slim` ベース）
 - [ ] ローカルで `docker build` → `docker run` で動作確認
 - [ ] `curl` で全エンドポイントの動作確認
 
@@ -120,8 +120,8 @@
 - [x] `SPEC.md` — ハンズオン全体仕様
 - [x] `api-spec.md` — API 仕様書（学習者配布用）
 - [x] バックエンド骨格コード（`app.py` / `routes/books.py` / `routes/reviews.py` / `db/dynamo.py`）
-- [ ] `Dockerfile` 完成形（学習者配布用）
-- [ ] `requirements.txt` 完成形（学習者配布用）
+- [x] `Dockerfile` 完成形（学習者配布用）
+- [x] `requirements.txt` 完成形（学習者配布用）
 - [ ] 手順書（学習者向け）— 環境確認 / 実装ステップ / ECR push / curl 動作確認コマンド集
 - [ ] 講師用進行ガイド — タイムライン・詰まりポイントと対処法・Fargate デプロイ手順
 
