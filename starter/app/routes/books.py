@@ -39,36 +39,77 @@ def create_book():
 
 @books_bp.route('/books/<book_id>', methods=['GET'])
 def get_book(book_id):
-    # ============================================================
-    # TODO: 書籍詳細を取得する
-    # ============================================================
-    # 1. table.get_item() で PK='BOOK#<book_id>', SK='METADATA' のアイテムを取得する
-    # 2. アイテムが存在しなければ 404 エラーを返す
-    # 3. 書籍オブジェクトを jsonify して返す
-    pass
+    try:
+        table = get_table()
+
+        # ===========================================================
+        # TODO: 書籍詳細を取得する
+        # ===========================================================
+        # 1. table.get_item() で PK='BOOK#<book_id>', SK='METADATA' のアイテムを取得する
+        # 2. アイテムが存在しなければ 404 エラーを返す
+        #    - return jsonify({'error': 'Book not found'}), 404
+        # 3. 書籍オブジェクトを jsonify して返す
+        #    - book_id, title, author, description, created_at を含める
+        pass
+
+    except (BotoCoreError, ClientError) as e:
+        abort(500)
 
 
 @books_bp.route('/books/<book_id>', methods=['PUT'])
 def update_book(book_id):
-    # ============================================================
-    # TODO: 書籍を更新する
-    # ============================================================
-    # 1. table.get_item() で対象書籍の存在を確認する、なければ 404
-    # 2. request.get_json() でリクエストボディを取得する
-    # 3. title, author, description のうち含まれるフィールドだけを更新対象にする
-    # 4. table.update_item() で DynamoDB を更新する
-    #    - UpdateExpression, ExpressionAttributeValues, ExpressionAttributeNames を組み立てる
-    #    - ReturnValues='ALL_NEW' で更新後のアイテムを受け取る
-    # 5. 更新後の書籍オブジェクトを jsonify して返す
-    pass
+    try:
+        table = get_table()
+
+        # 対象書籍が存在するか確認する
+        response = table.get_item(Key={'PK': f'BOOK#{book_id}', 'SK': 'METADATA'})
+        if not response.get('Item'):
+            return jsonify({'error': 'Book not found'}), 404
+
+        # リクエストボディから変更フィールドを取得する
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Request body is required'}), 400
+
+        # 更新可能なフィールドだけを対象にする
+        allowed_fields = ['title', 'author', 'description']
+
+        # ===========================================================
+        # TODO: UpdateExpression を組み立てて update_item を実行する
+        # ===========================================================
+        # 1. allowed_fields のうち data に含まれるフィールドについて、以下の 3 つを組み立てる:
+        #    - update_expressions: ['#title = :title', '#author = :author', ...]
+        #    - expression_values:  {':title': '新しいタイトル', ...}
+        #    - expression_names:   {'#title': 'title', ...}
+        # 2. 更新対象がなければ 400 エラーを返す
+        # 3. table.update_item() を実行する
+        #    - UpdateExpression='SET ' + ', '.join(update_expressions)
+        #    - ReturnValues='ALL_NEW' で更新後のアイテムを受け取る
+        # 4. 更新後の書籍オブジェクトを jsonify して返す
+        #    - book_id, title, author, description, created_at を含める
+        pass
+
+    except (BotoCoreError, ClientError) as e:
+        abort(500)
 
 
 @books_bp.route('/books/<book_id>', methods=['DELETE'])
 def delete_book(book_id):
-    # ============================================================
-    # TODO: 書籍を削除する
-    # ============================================================
-    # 1. table.get_item() で対象書籍の存在を確認する、なければ 404
-    # 2. table.delete_item() で DynamoDB からアイテムを削除する
-    # 3. {"message": "Book deleted"} を jsonify して返す
-    pass
+    try:
+        table = get_table()
+
+        # 対象書籍が存在するか確認する
+        response = table.get_item(Key={'PK': f'BOOK#{book_id}', 'SK': 'METADATA'})
+        if not response.get('Item'):
+            return jsonify({'error': 'Book not found'}), 404
+
+        # ===========================================================
+        # TODO: 書籍を削除する
+        # ===========================================================
+        # 1. table.delete_item() で DynamoDB からアイテムを削除する
+        #    - Key に PK と SK を指定する
+        # 2. {"message": "Book deleted"} を jsonify して返す
+        pass
+
+    except (BotoCoreError, ClientError) as e:
+        abort(500)

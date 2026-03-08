@@ -68,10 +68,11 @@ pip install -r requirements.txt
 
 ### 1-1. app.py の TODO を確認する
 
-`app.py` を開いてください。以下の 2 つの TODO があります:
+`app.py` を開いてください。TODO が 1 つあります:
 
-1. **Blueprint の登録** — `books_bp` と `reviews_bp` を import して `app.register_blueprint()` で登録する
-2. **エラーハンドラーの定義** — 404 と 500 のエラーハンドラーを作る
+- **Blueprint の登録** — `books_bp` と `reviews_bp` を import して `app.register_blueprint()` で登録する
+
+> エラーハンドラー（`@app.errorhandler(404)` / `@app.errorhandler(500)`）は提供済みです。コードを読んで、どのような処理をしているか確認しておきましょう。
 
 ### 1-2. Blueprint を登録する
 
@@ -87,19 +88,7 @@ app.register_blueprint(reviews_bp, url_prefix='/api/v1')
 
 **ポイント**: `url_prefix='/api/v1'` を指定すると、各 Blueprint 内の `/books` は `/api/v1/books` としてアクセスできるようになります。
 
-### 1-3. エラーハンドラーを定義する
-
-```python
-@app.errorhandler(404)
-def not_found(error):
-    return jsonify({'error': 'Not found'}), 404
-
-@app.errorhandler(500)
-def internal_server_error(error):
-    return jsonify({'error': 'Internal server error'}), 500
-```
-
-### 1-4. Flask を起動して動作確認する
+### 1-3. Flask を起動して動作確認する
 
 ```bash
 python app.py
@@ -279,11 +268,9 @@ curl -s http://localhost:5000/api/v1/books | python -m json.tool
 
 **この関数がやること**: URL の `<book_id>` 部分を使って DynamoDB から 1 件の書籍を取得する。
 
+> `try-except` の枠は提供済みです。TODO コメントの `pass` を以下のコードに置き換えてください。
+
 ```python
-@books_bp.route('/books/<book_id>', methods=['GET'])
-def get_book(book_id):
-    try:
-        table = get_table()
         response = table.get_item(Key={'PK': f'BOOK#{book_id}', 'SK': 'METADATA'})
         item = response.get('Item')
 
@@ -298,8 +285,6 @@ def get_book(book_id):
             'created_at': item['created_at'],
         }
         return jsonify(book)
-    except (BotoCoreError, ClientError) as e:
-        abort(500)
 ```
 
 **コードの解説**:
@@ -322,22 +307,10 @@ def get_book(book_id):
 **この関数がやること**: 既存の書籍の一部フィールド（title, author, description）を更新する。
 
 > この関数は今回のハンズオンで **最も難しい** パートです。`update_item` の仕組みを理解しましょう。
+>
+> 存在確認・リクエスト取得・`allowed_fields` の定義は提供済みです。TODO コメントの `pass` を以下のコードに置き換えてください。
 
 ```python
-@books_bp.route('/books/<book_id>', methods=['PUT'])
-def update_book(book_id):
-    try:
-        table = get_table()
-
-        response = table.get_item(Key={'PK': f'BOOK#{book_id}', 'SK': 'METADATA'})
-        if not response.get('Item'):
-            return jsonify({'error': 'Book not found'}), 404
-
-        data = request.get_json()
-        if not data:
-            return jsonify({'error': 'Request body is required'}), 400
-
-        allowed_fields = ['title', 'author', 'description']
         update_expressions = []
         expression_values = {}
         expression_names = {}
@@ -368,8 +341,6 @@ def update_book(book_id):
             'created_at': updated['created_at'],
         }
         return jsonify(book)
-    except (BotoCoreError, ClientError) as e:
-        abort(500)
 ```
 
 **コードの解説**:
@@ -406,26 +377,17 @@ ExpressionAttributeNames:  {"#description": "description"}
 
 **この関数がやること**: 指定された書籍を DynamoDB から削除する。
 
+> 存在確認と `try-except` は提供済みです。TODO コメントの `pass` を以下のコードに置き換えてください。
+
 ```python
-@books_bp.route('/books/<book_id>', methods=['DELETE'])
-def delete_book(book_id):
-    try:
-        table = get_table()
-
-        response = table.get_item(Key={'PK': f'BOOK#{book_id}', 'SK': 'METADATA'})
-        if not response.get('Item'):
-            return jsonify({'error': 'Book not found'}), 404
-
         table.delete_item(Key={'PK': f'BOOK#{book_id}', 'SK': 'METADATA'})
 
         return jsonify({'message': 'Book deleted'})
-    except (BotoCoreError, ClientError) as e:
-        abort(500)
 ```
 
 **コードの解説**:
 
-1. **存在確認を先に行う** — 存在しない書籍を削除しようとした場合に 404 を返すため。DynamoDB の `delete_item` は存在しないキーに対してもエラーにならない（何も起きない）ので、明示的にチェックする
+1. **存在確認は提供済み** — 存在しない書籍を削除しようとした場合に 404 を返します。DynamoDB の `delete_item` は存在しないキーに対してもエラーにならない（何も起きない）ので、明示的にチェックが必要です
 2. **`table.delete_item(Key={...})`** — PK と SK を指定してアイテムを削除する。Python の辞書で例えると `del table[('BOOK#xxx', 'METADATA')]` に相当する
 
 ---
@@ -512,16 +474,9 @@ curl -s http://localhost:5000/api/v1/books | python -m json.tool
 
 **この関数がやること**: 指定された書籍の存在を確認し、その書籍に紐づくレビューを `query` で取得して返す。
 
+> 書籍の存在確認と `try-except` は提供済みです。TODO コメントの `pass` を以下のコードに置き換えてください。
+
 ```python
-@reviews_bp.route('/books/<book_id>/reviews', methods=['GET'])
-def list_reviews(book_id):
-    try:
-        table = get_table()
-
-        book_response = table.get_item(Key={'PK': f'BOOK#{book_id}', 'SK': 'METADATA'})
-        if not book_response.get('Item'):
-            return jsonify({'error': 'Book not found'}), 404
-
         response = table.query(
             KeyConditionExpression=Key('PK').eq(f'BOOK#{book_id}') & Key('SK').begins_with('REVIEW#')
         )
@@ -539,13 +494,11 @@ def list_reviews(book_id):
             })
 
         return jsonify({'reviews': reviews})
-    except (BotoCoreError, ClientError) as e:
-        abort(500)
 ```
 
 **コードの解説**:
 
-1. **書籍の存在確認** — まず `get_item` で書籍（SK=`METADATA`）が存在するか確認する。存在しなければ 404 を返す
+1. **書籍の存在確認（提供済み）** — `get_item` で書籍（SK=`METADATA`）が存在するか確認し、存在しなければ 404 を返します
 2. **`table.query(KeyConditionExpression=...)`** — ここが新しい操作。`query` は以下の 2 つの条件を組み合わせて検索する:
    - `Key('PK').eq(f'BOOK#{book_id}')` — PK が指定した値と**一致する**アイテム
    - `Key('SK').begins_with('REVIEW#')` — SK が `REVIEW#` で**始まる**アイテム
@@ -574,27 +527,9 @@ SPEC.md の具体例で考えてみましょう。テーブルに 4 件のアイ
 
 **この関数がやること**: 書籍の存在を確認し、バリデーション後にレビューを DynamoDB に保存する。
 
+> 書籍の存在確認、バリデーション、UUID/timestamp 生成は提供済みです。TODO コメントの `pass` を以下のコードに置き換えてください。
+
 ```python
-@reviews_bp.route('/books/<book_id>/reviews', methods=['POST'])
-def create_review(book_id):
-    try:
-        table = get_table()
-
-        book_response = table.get_item(Key={'PK': f'BOOK#{book_id}', 'SK': 'METADATA'})
-        if not book_response.get('Item'):
-            return jsonify({'error': 'Book not found'}), 404
-
-        data = request.get_json()
-
-        if not data or not all(key in data for key in ['reviewer', 'rating', 'comment']):
-            return jsonify({'error': 'reviewer, rating, comment は必須です'}), 400
-
-        if not isinstance(data['rating'], int) or data['rating'] < 1 or data['rating'] > 5:
-            return jsonify({'error': 'rating is out of range (1-5)'}), 400
-
-        review_id = str(uuid.uuid4())
-        created_at = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
-
         item = {
             'PK': f'BOOK#{book_id}',
             'SK': f'REVIEW#{review_id}',
@@ -614,16 +549,13 @@ def create_review(book_id):
             'created_at': created_at,
         }
         return jsonify(review), 201
-    except (BotoCoreError, ClientError) as e:
-        abort(500)
 ```
 
 **コードの解説**:
 
-1. **書籍の存在確認** — レビュー投稿前に必ず親リソース（書籍）の存在を確認する
-2. **必須フィールドのバリデーション** — `reviewer`, `rating`, `comment` の 3 つが全て含まれているかチェック
-3. **`rating` の範囲チェック** — `isinstance(data['rating'], int)` で整数型かを確認し、1〜5 の範囲内かをチェックする。文字列（`"5"`）や範囲外（`10`）の場合は 400 を返す
-4. **PK と SK の設定** — PK は書籍と同じ `BOOK#<book_id>`。SK は `REVIEW#<review_id>` とすることで、同じ PK の下に書籍本体とレビューが共存する
+1. **書籍の存在確認（提供済み）** — レビュー投稿前に必ず親リソース（書籍）の存在を確認する
+2. **バリデーション（提供済み）** — 必須フィールドと rating 範囲のチェック。`create_book` で学んだパターンと同じ
+3. **PK と SK の設定** — PK は書籍と同じ `BOOK#<book_id>`。SK は `REVIEW#<review_id>` とすることで、同じ PK の下に書籍本体とレビューが共存する
 
 **書籍登録（POST /books）との違い**:
 - PK が新規 ID ではなく、**既存の書籍の PK を使う**
@@ -767,7 +699,7 @@ except (BotoCoreError, ClientError) as e:
 
 ### 4-4. 未捕捉例外（@app.errorhandler）
 
-パート 1 で `app.py` に定義した `@app.errorhandler(500)` が最後の砦です。`try-except` で捕捉できなかったエラーや、`abort(500)` で明示的に発生させた 500 エラーをここで処理します。
+`app.py` に定義済みの `@app.errorhandler(500)` が最後の砦です。`try-except` で捕捉できなかったエラーや、`abort(500)` で明示的に発生させた 500 エラーをここで処理します。
 
 ```python
 @app.errorhandler(500)

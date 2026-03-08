@@ -15,13 +15,16 @@ CORS(app)
 #    - url_prefix には '/api/v1' を指定する
 
 
-# ============================================================
-# TODO: エラーハンドラーを定義する
-# ============================================================
-# 1. @app.errorhandler(404) で 404 エラーハンドラーを作る
-#    - {"error": "Not found"} を返す
-# 2. @app.errorhandler(500) で 500 エラーハンドラーを作る
-#    - {"error": "Internal server error"} を返す
+# 404 エラーハンドラー
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({'error': 'Not found'}), 404
+
+
+# 500 エラーハンドラー
+@app.errorhandler(500)
+def internal_server_error(error):
+    return jsonify({'error': 'Internal server error'}), 500
 
 
 if __name__ == '__main__':

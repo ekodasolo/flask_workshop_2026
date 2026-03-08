@@ -10,31 +10,65 @@ reviews_bp = Blueprint('reviews', __name__)
 
 @reviews_bp.route('/books/<book_id>/reviews', methods=['GET'])
 def list_reviews(book_id):
-    # ============================================================
-    # TODO: レビュー一覧を取得する
-    # ============================================================
-    # 1. table.get_item() で対象書籍の存在を確認する、なければ 404
-    # 2. table.query() でレビューを取得する
-    #    - KeyConditionExpression に Key('PK').eq(...) & Key('SK').begins_with('REVIEW#') を指定する
-    # 3. 各アイテムから review_id, book_id, reviewer, rating, comment, created_at を取り出す
-    #    - review_id は SK から 'REVIEW#' を除いた部分
-    # 4. {"reviews": [...]} の形式で jsonify して返す
-    pass
+    try:
+        table = get_table()
+
+        # 対象書籍が存在するか確認する
+        book_response = table.get_item(Key={'PK': f'BOOK#{book_id}', 'SK': 'METADATA'})
+        if not book_response.get('Item'):
+            return jsonify({'error': 'Book not found'}), 404
+
+        # ===========================================================
+        # TODO: レビュー一覧を取得する
+        # ===========================================================
+        # 1. table.query() でレビューを取得する
+        #    - KeyConditionExpression に Key('PK').eq(...) & Key('SK').begins_with('REVIEW#') を指定する
+        # 2. 各アイテムから review_id, book_id, reviewer, rating, comment, created_at を取り出す
+        #    - review_id は SK から 'REVIEW#' を除いた部分
+        #    - rating は int() で整数に変換する
+        # 3. {"reviews": [...]} の形式で jsonify して返す
+        pass
+
+    except (BotoCoreError, ClientError) as e:
+        abort(500)
 
 
 @reviews_bp.route('/books/<book_id>/reviews', methods=['POST'])
 def create_review(book_id):
-    # ============================================================
-    # TODO: レビューを投稿する
-    # ============================================================
-    # 1. table.get_item() で対象書籍の存在を確認する、なければ 404
-    # 2. request.get_json() でリクエストボディを取得する
-    # 3. reviewer, rating, comment が全て含まれているかチェックする
-    #    - 足りなければ 400 エラーを返す
-    # 4. rating が 1〜5 の整数かチェックする
-    #    - 範囲外なら 400 エラーを返す
-    # 5. str(uuid.uuid4()) で review_id を生成する
-    # 6. table.put_item() で DynamoDB に書き込む
-    #    - PK: 'BOOK#<book_id>', SK: 'REVIEW#<review_id>'
-    # 7. 登録したレビューオブジェクトを 201 で返す
-    pass
+    try:
+        table = get_table()
+
+        # 対象書籍が存在するか確認する
+        book_response = table.get_item(Key={'PK': f'BOOK#{book_id}', 'SK': 'METADATA'})
+        if not book_response.get('Item'):
+            return jsonify({'error': 'Book not found'}), 404
+
+        # リクエストボディを取得する
+        data = request.get_json()
+
+        # 必須フィールドのバリデーション
+        if not data or not all(key in data for key in ['reviewer', 'rating', 'comment']):
+            return jsonify({'error': 'reviewer, rating, comment は必須です'}), 400
+
+        # rating の範囲チェック（1〜5）
+        if not isinstance(data['rating'], int) or data['rating'] < 1 or data['rating'] > 5:
+            return jsonify({'error': 'rating is out of range (1-5)'}), 400
+
+        # UUID で review_id を生成する
+        review_id = str(uuid.uuid4())
+        created_at = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+
+        # ===========================================================
+        # TODO: レビューを DynamoDB に書き込んでレスポンスを返す
+        # ===========================================================
+        # 1. DynamoDB に書き込むアイテムを辞書で作成する
+        #    - PK: 'BOOK#<book_id>'（既存の書籍の PK を使う）
+        #    - SK: 'REVIEW#<review_id>'
+        #    - reviewer, rating, comment, created_at を含める
+        # 2. table.put_item() で DynamoDB に書き込む
+        # 3. レビューオブジェクトを jsonify して 201 で返す
+        #    - review_id, book_id, reviewer, rating, comment, created_at を含める
+        pass
+
+    except (BotoCoreError, ClientError) as e:
+        abort(500)
