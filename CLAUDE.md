@@ -38,6 +38,8 @@ flask_workshop/
 ├── answer/              # 完成形コード（講師用）
 │   └── app/
 ├── frontend/            # 講師が用意するデモ用の React フロントエンドアプリ
+├── infra/               # AWS CDK（TypeScript）によるインフラ定義
+│   └── lib/constructs/  # network / database / ecr / application
 └── docs/                # 手順書・講師ガイド等
 ```
 

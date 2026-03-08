@@ -45,35 +45,41 @@
 
 ---
 
-## 2. インフラ（講師側）
+## 2. インフラ（CDK + 講師側手動作業）
 
-### 2-1. EC2 / Code Server
+### 2-0. CDK プロジェクト基盤
+
+- [x] CDK TypeScript プロジェクトを `infra/` に作成
+- [x] コンストラクト分割: network / database / ecr / application
+- [x] スタック定義（`InfraStack`）と context による学習者リスト管理
+- [ ] 各コンストラクトの実装
+
+### 2-1. EC2 / Code Server（手動）
 
 - [ ] EC2 インスタンス起動（Amazon Linux 2023 推奨）
 - [ ] Code Server インストール・起動設定
 - [ ] 学習者ごとのディレクトリ作成とスターターコード配置
 - [ ] EC2 インスタンスロールに DynamoDB アクセス権限を付与（最小権限）
 
-### 2-2. DynamoDB
+### 2-2. DynamoDB（CDK: database コンストラクト）
 
 - [ ] 学習者人数分のテーブルを作成（`book-review-api-<username>`）
  - PK: `PK`（String）/ SK: `SK`（String）
-- [ ] テーブル作成スクリプトを用意（AWS CLI or CloudFormation）
 
-### 2-3. ECR
+### 2-3. ECR（CDK: ecr コンストラクト）
 
 - [ ] ECR リポジトリを作成（`book-review-api`）
 - [ ] 学習者が使う `docker tag` / `docker push` コマンドを手順書に記載
 
-### 2-4. ECS Fargate / ALB
+### 2-4. ECS Fargate / ALB（CDK: network + application コンストラクト）
 
+- [ ] VPC 定義（network コンストラクト）
 - [ ] ECS クラスター作成
-- [ ] タスク定義を作成（`python:3.13-slim` / 環境変数 `TABLE_NAME` を設定）
-- [ ] ECS サービス作成（Fargate 起動タイプ）
-- [ ] ALB 作成・ECS サービスとターゲットグループを紐付け
-- [ ] 代表者イメージへのタスク定義更新手順を事前に確認・整備
+- [ ] タスク定義を作成（環境変数 `TABLE_NAME` を設定）
+- [ ] Fargate サービス作成
+- [ ] ALB 作成・サービスと紐付け
 
-### 2-5. Amplify
+### 2-5. Amplify（手動）
 
 - [ ] Amplify アプリ作成
 - [ ] 環境変数 `REACT_APP_API_BASE_URL` に ALB の DNS を設定
