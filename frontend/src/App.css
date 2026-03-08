@@ -1,6 +1,5 @@
 .app {
-  max-width: 800px;
-  margin: 0 auto;
+  min-height: 100vh;
 }
 
 /* Header */
@@ -11,6 +10,12 @@
   padding: 1rem 1.5rem;
   background-color: #1e293b;
   color: white;
+  width: 100%;
+}
+
+.app main {
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 .app-header h1 {
