@@ -6,38 +6,74 @@ import { Ecr } from './constructs/ecr';
 import { Application } from './constructs/application';
 
 export interface InfraStackProps extends cdk.StackProps {
-  /** 学習者のユーザー名リスト */
-  usernames: string[];
-  /** 代表者のテーブル名（Fargate の環境変数に設定する） */
-  tableName: string;
+  environment: string;
+  username: string;
+  imageTag: string;
 }
 
 export class InfraStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: InfraStackProps) {
     super(scope, id, props);
 
-    // ネットワーク
-    const network = new Network(this, 'Network');
+    const { environment, username, imageTag } = props;
 
-    // DynamoDB テーブル（学習者ごと）
+    // ネットワーク
+    const network = new Network(this, 'Network', {
+      environment: environment
+    });
+
+    // DynamoDB テーブル
     const database = new Database(this, 'Database', {
-      usernames: props.usernames,
+      environment: environment,
+      username: username,
     });
 
     // ECR リポジトリ
-    const ecr = new Ecr(this, 'Ecr');
+    const ecr = new Ecr(this, 'Ecr', {
+      environment: environment,
+    });
 
     // ALB + Fargate
     const application = new Application(this, 'Application', {
+      environment: environment,
       vpc: network.vpc,
       repository: ecr.repository,
-      tableName: props.tableName,
+      imageTag: imageTag,
+      table: database.table,
     });
 
-    // ALB の DNS 名を出力する
-    new cdk.CfnOutput(this, 'AlbDnsName', {
-      value: application.albDnsName,
-      description: 'ALB の DNS 名（React アプリの API_BASE_URL に設定する）',
+    //-------------------------------------------------------
+    // Stack Outputs
+    //-------------------------------------------------------
+    // VPC
+    new cdk.CfnOutput(this, 'VpcId', {
+      value: network.vpc.vpcId,
+      description: 'VPC ID',
     });
+
+    // ALB Arn
+    new cdk.CfnOutput(this, 'AlbArn', {
+      value: application.alb.loadBalancerArn,
+      description: 'ALB ARN',
+    });
+
+    // ALB の DNS名
+    new cdk.CfnOutput(this, 'AlbDnsName', {
+      value: application.alb.loadBalancerDnsName,
+      description: 'ALB DNS Name',
+    });
+
+    // ECS Cluster
+    new cdk.CfnOutput(this, 'ECSClusterName', {
+      value: application.ecsCluster.clusterName,
+      description: 'ECS Cluster Name',
+    });
+
+    // ECS Service
+    new cdk.CfnOutput(this, 'ECSServiceName', {
+      value: application.ecsService.serviceName,
+      description: 'ECS Service Name',
+    });
+
   }
 }

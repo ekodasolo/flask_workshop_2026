@@ -1,10 +1,11 @@
 import { Construct } from 'constructs';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
-import { database as params } from '../params';
+import * as cdk from 'aws-cdk-lib';
+import { common, database as params } from '../params';
 
 export interface DatabaseProps {
-  /** 学習者のユーザー名リスト（テーブルを人数分作成する） */
-  usernames: string[];
+  environment: string;
+  username: string;
 }
 
 /**
@@ -13,13 +14,27 @@ export interface DatabaseProps {
  * - PK: PK (String) / SK: SK (String)
  */
 export class Database extends Construct {
-  public readonly tables: dynamodb.Table[];
+  public readonly table: dynamodb.Table;
 
   constructor(scope: Construct, id: string, props: DatabaseProps) {
     super(scope, id);
 
+    const { environment, username } = props;
+
     // TODO: 学習者人数分の DynamoDB テーブルを作成する
     // テーブル名: `${params.tableNamePrefix}-${username}`
-    this.tables = [];
-  }
+    this.table = new dynamodb.Table(this, `DDBTable-${environment}-${username}`, {
+      tableName: `${params.tableNamePrefix}-${environment}-${username}`,
+      partitionKey: {
+        name: 'PK',
+        type: dynamodb.AttributeType.STRING,
+      },
+      sortKey: {
+        name: 'SK',
+        type: dynamodb.AttributeType.STRING,
+      },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+  };
 }

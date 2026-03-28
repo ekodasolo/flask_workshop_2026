@@ -1,17 +1,20 @@
 import { Construct } from 'constructs';
+import * as cdk from 'aws-cdk-lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as ecr from 'aws-cdk-lib/aws-ecr';
+import * as logs from 'aws-cdk-lib/aws-logs';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as ddb from 'aws-cdk-lib/aws-dynamodb';
 import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
-import { application as params } from '../params';
+import { common, application as params } from '../params';
 
 export interface ApplicationProps {
-  /** Network コンストラクトで作成した VPC */
+  environment: string;
   vpc: ec2.Vpc;
-  /** ECR コンストラクトで作成したリポジトリ */
   repository: ecr.Repository;
-  /** Fargate タスクに渡す TABLE_NAME 環境変数 */
-  tableName: string;
+  imageTag: string;
+  table: ddb.Table;
 }
 
 /**
@@ -21,17 +24,150 @@ export interface ApplicationProps {
  * - ALB
  */
 export class Application extends Construct {
-  public readonly cluster: ecs.Cluster;
-  public readonly albDnsName: string;
+  public readonly alb: elbv2.ApplicationLoadBalancer;
+  public readonly ecsCluster: ecs.Cluster;
+  public readonly ecsService: ecs.FargateService;
 
   constructor(scope: Construct, id: string, props: ApplicationProps) {
     super(scope, id);
 
-    // TODO: ECS クラスターを作成する
-    // TODO: Fargate タスク定義を作成する
-    //   - props.tableName を環境変数 TABLE_NAME に設定
-    //   - params.containerPort を使用
-    // TODO: Fargate サービスを作成する
-    // TODO: ALB を作成してサービスと紐付ける
+    // Constructor props
+    const { environment, vpc, repository, imageTag, table } = props;
+
+    // Security Group for ALB
+    const albSecurityGroup = new ec2.SecurityGroup(this, 'ALBSecurityGroup', {
+      vpc,
+      description: 'Security group for Application Load Balancer',
+      allowAllOutbound: false
+    });
+
+    const allowed_cidrs = params.securityGroup.albAllowedSourceCidrs;
+    allowed_cidrs.forEach(cidr => {
+      albSecurityGroup.addIngressRule(
+        ec2.Peer.ipv4(cidr),
+        ec2.Port.tcp(params.securityGroup.albIngressPort),
+        'Allow HTTP traffic from internet'
+      );
+    });
+
+    // Security Group for ECS
+    const ecsSecurityGroup = new ec2.SecurityGroup(this, 'EcsSecurityGroup', {
+      vpc,
+      description: 'Security group for ECS tasks',
+    });
+
+    ecsSecurityGroup.addIngressRule(
+      albSecurityGroup,
+      ec2.Port.tcp(params.securityGroup.ecsIngressPort),
+      'Allow traffic from ALB'
+    );
+    ecsSecurityGroup.addEgressRule(ec2.Peer.anyIpv4(), ec2.Port.allTcp());
+
+    // ALB
+    const albForApp = new elbv2.ApplicationLoadBalancer(this, 'ApplicationLoadBalancer', {
+      vpc,
+      internetFacing: true,
+      securityGroup: albSecurityGroup,
+      vpcSubnets: {
+        subnetType: ec2.SubnetType.PUBLIC,
+      },
+    });
+    this.alb = albForApp;
+
+    // ECS Cluster
+    const cluster = new ecs.Cluster(this, 'EcsCluster', {
+      vpc,
+      clusterName: `${common.projectName}-${props.environment}-ecs-cluster`,
+    });
+    this.ecsCluster = cluster;
+
+    // Logs
+    const logGroup = new logs.LogGroup(this, 'EcsLogGroup', {
+      logGroupName: `/ecs/${common.projectName}`,
+      retention: logs.RetentionDays.ONE_WEEK,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
+    // ECS execution Role
+    const executionRole = new iam.Role(this, 'EcsTaskExecutionRole', {
+      assumedBy: new iam.ServicePrincipal('ecs-tasks.amazonaws.com'),
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName(
+          'service-role/AmazonECSTaskExecutionRolePolicy'
+        ),
+      ],
+    });
+
+    // ECS task Role
+    const serviceTaskRole = new iam.Role(this, 'EcsTaskRole', {
+      assumedBy: new iam.ServicePrincipal('ecs-tasks.amazonaws.com'),
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName(
+          'AWSOpsWorksCloudWatchLogs'
+        ),
+      ],
+    });
+    table.grantReadWriteData(serviceTaskRole);
+
+    // ECS Task Definition
+    const taskDefinition = new ecs.FargateTaskDefinition(this, 'TaskDefinition', {
+      cpu: params.ecs.task.cpu,
+      memoryLimitMiB: params.ecs.task.memory,
+      runtimePlatform: {
+        cpuArchitecture: ecs.CpuArchitecture.X86_64,
+        operatingSystemFamily: ecs.OperatingSystemFamily.LINUX,
+      },
+      executionRole: executionRole,
+      taskRole: serviceTaskRole,
+    });
+
+    const conainerDefinition = taskDefinition.addContainer(params.ecs.container.name, {
+      image: ecs.ContainerImage.fromEcrRepository(
+        repository, 
+        imageTag ?? 'latest',
+      ),
+      logging: ecs.LogDrivers.awsLogs({
+        streamPrefix: params.logs.streamPrefix,
+        logGroup: logGroup,
+      })
+    });
+    conainerDefinition.addPortMappings({
+      containerPort: params.ecs.container.containerPort,
+      protocol: ecs.Protocol.TCP,
+    });
+
+    // ECS Service
+    const ecsService = new ecs.FargateService(this, 'EcsService', {
+      cluster,
+      taskDefinition,
+      desiredCount: params.ecs.service.desiredCount,
+      securityGroups: [ecsSecurityGroup],
+      vpcSubnets: vpc.selectSubnets({ subnetGroupName: 'PrivateSubnet' }),
+      serviceName: `${common.projectName}-${environment}-ecs-service`,
+    });
+    this.ecsService = ecsService;
+
+    // Target Group
+    const appTargetGroup = new elbv2.ApplicationTargetGroup(this, 'AppTargetGroup', {
+      vpc,
+      port: params.ecs.container.containerPort,
+      protocol: elbv2.ApplicationProtocol.HTTP,
+      targets: [ecsService],
+      healthCheck: {
+        path: '/',
+        interval: cdk.Duration.seconds(30),
+      },
+    });
+
+    // ALB Listner
+    const albListener = albForApp.addListener('AlbListener', {
+      port: params.alb.port,
+      certificates: [
+          {
+            certificateArn: params.alb.certificationArn || '',
+          },
+      ],
+      open: false,
+    });
   }
 }

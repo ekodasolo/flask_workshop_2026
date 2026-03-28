@@ -5,42 +5,68 @@
 
 /** 共通パラメータ */
 export const common = {
-  /** プロジェクト名（リソース名のプレフィックスに使用） */
   projectName: 'book-review-api',
-  /** デプロイ先アカウント */
   account: '123456789012',
-  /** デプロイ先リージョン */
   region: 'ap-northeast-1',
-  /** 学習者のユーザー名リスト */
   usernames: ['user1', 'user2'],
 };
 
 /** Network コンストラクト */
 export const network = {
-  /** VPC の最大 AZ 数 */
   maxAzs: 2,
+  vpcCidr: '10.0.0.0/24',
+  availabilityZones: ['ap-northeast-1a', 'ap-northeast-1c'],
+  natGatewayCount: 1,
+  subnetCidrMask: 24
 };
 
 /** Database コンストラクト */
 export const database = {
-  /** テーブル名のプレフィックス（テーブル名: <prefix>-<username>） */
   tableNamePrefix: common.projectName,
 };
 
 /** ECR コンストラクト */
 export const ecr = {
-  /** リポジトリ名 */
   repositoryName: common.projectName,
 };
 
 /** Application コンストラクト */
 export const application = {
-  /** Fargate にデプロイする代表者のユーザー名 */
-  deployUsername: common.usernames[0],
-  /** コンテナのポート */
-  containerPort: 5000,
-  /** Fargate タスクに渡す TABLE_NAME（代表者のテーブル名） */
-  get tableName() {
-    return `${database.tableNamePrefix}-${this.deployUsername}`;
+  // セキュリティグループ設定
+  securityGroup: {
+    albIngressPort: 443,
+    albAllowedSourceCidrs: ["210.175.11.128/26", "210.149.174.146/32", "210.149.174.147/32", "52.194.17.175/32"],
+    ecsIngressPort: 5000,
+  },
+  // ALB設定
+  alb: {
+    port: 443,
+    healthCheck: {
+      path: '/',
+      intervalSeconds: 30,
+      timeoutSeconds: 5,
+      healthyThreshold: 2,
+      unhealthyThreshold: 3,
+    },
+    customDomainName: '', 
+    certificationArn: '',
+  },
+  // ECS設定
+  ecs: {
+    task: {
+      cpu: 256, // 0.25 vCPU
+      memory: 512, // 512 MB
+    },
+    container: {
+      name: 'flask',
+      containerPort: 5000,
+    },
+    service: {
+      desiredCount: 1,
+    },
+  },
+  // CloudWatch Logs設定
+  logs: {
+    streamPrefix: 'ecs',
   },
 };
