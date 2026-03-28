@@ -14,7 +14,7 @@ export const common = {
 /** Network コンストラクト */
 export const network = {
   maxAzs: 2,
-  vpcCidr: '10.0.0.0/24',
+  vpcCidr: '10.0.0.0/16',
   availabilityZones: ['ap-northeast-1a', 'ap-northeast-1c'],
   natGatewayCount: 1,
   subnetCidrMask: 24

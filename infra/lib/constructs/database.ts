@@ -21,8 +21,6 @@ export class Database extends Construct {
 
     const { environment, username } = props;
 
-    // TODO: 学習者人数分の DynamoDB テーブルを作成する
-    // テーブル名: `${params.tableNamePrefix}-${username}`
     this.table = new dynamodb.Table(this, `DDBTable-${environment}-${username}`, {
       tableName: `${params.tableNamePrefix}-${environment}-${username}`,
       partitionKey: {

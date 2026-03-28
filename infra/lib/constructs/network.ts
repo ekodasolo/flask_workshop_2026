@@ -17,8 +17,6 @@ export class Network extends Construct {
   constructor(scope: Construct, id: string, props: NetworkProps) {
     super(scope, id);
 
-    // TODO: VPC を定義する
-    // params.maxAzs を使用する
     const { environment } = props;
 
     // VPC

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import * as cdk from 'aws-cdk-lib';
 import { InfraStack } from '../lib/infra-stack';
-import { common, application } from '../lib/params';
+import { common } from '../lib/params';
 
 const app = new cdk.App();
 
@@ -12,15 +12,16 @@ const account = app.node.tryGetContext('account')
 const region = app.node.tryGetContext('region')
   ?? process.env.CDK_DEFAULT_REGION
   ?? common.region;
-const usernames = app.node.tryGetContext('usernames')
+const usernames: string[] = app.node.tryGetContext('usernames')
   ?? process.env.WORKSHOP_USERNAMES?.split(',')
   ?? common.usernames;
-const tableName = app.node.tryGetContext('tableName')
-  ?? process.env.WORKSHOP_TABLE_NAME
-  ?? application.tableName;
 
-new InfraStack(app, 'BookReviewWorkshopStack', {
-  env: { account, region },
-  usernames,
-  tableName,
-});
+// 参加者ごとに独立したスタックをデプロイする
+for (const username of usernames) {
+  new InfraStack(app, `BookReviewWorkshop-${username}`, {
+    env: { account, region },
+    environment: 'workshop',
+    username,
+    imageTag: 'latest',
+  });
+}

@@ -19,8 +19,6 @@ export class Ecr extends Construct {
 
     const { environment } = props;
 
-    // TODO: ECR リポジトリを作成する
-    // params.repositoryName を使用する
     this.repository = new ecr.Repository(this, 'EcrRepo', {
       repositoryName: `${params.repositoryName}-${environment}-repo`,
       removalPolicy: cdk.RemovalPolicy.DESTROY,

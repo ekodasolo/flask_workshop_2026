@@ -121,17 +121,20 @@ export class Application extends Construct {
       taskRole: serviceTaskRole,
     });
 
-    const conainerDefinition = taskDefinition.addContainer(params.ecs.container.name, {
+    const containerDefinition = taskDefinition.addContainer(params.ecs.container.name, {
       image: ecs.ContainerImage.fromEcrRepository(
-        repository, 
+        repository,
         imageTag ?? 'latest',
       ),
       logging: ecs.LogDrivers.awsLogs({
         streamPrefix: params.logs.streamPrefix,
         logGroup: logGroup,
-      })
+      }),
+      environment: {
+        TABLE_NAME: table.tableName,
+      },
     });
-    conainerDefinition.addPortMappings({
+    containerDefinition.addPortMappings({
       containerPort: params.ecs.container.containerPort,
       protocol: ecs.Protocol.TCP,
     });
@@ -159,7 +162,7 @@ export class Application extends Construct {
       },
     });
 
-    // ALB Listner
+    // ALB Listener
     const albListener = albForApp.addListener('AlbListener', {
       port: params.alb.port,
       certificates: [
@@ -167,6 +170,7 @@ export class Application extends Construct {
             certificateArn: params.alb.certificationArn || '',
           },
       ],
+      defaultTargetGroups: [appTargetGroup],
       open: false,
     });
   }
