@@ -6,6 +6,7 @@ import { common, network as params } from '../params';
 export interface NetworkProps {
   environment: string,
   username: string,
+  vpcCidr: string,
 }
 
 /**
@@ -18,11 +19,11 @@ export class Network extends Construct {
   constructor(scope: Construct, id: string, props: NetworkProps) {
     super(scope, id);
 
-    const { environment, username } = props;
+    const { environment, username, vpcCidr } = props;
 
     // VPC
     this.vpc = new ec2.Vpc(this, 'VPC', {
-      ipAddresses: ec2.IpAddresses.cidr(params.vpcCidr),
+      ipAddresses: ec2.IpAddresses.cidr(vpcCidr),
       availabilityZones: [...params.availabilityZones],
       subnetConfiguration: [
         {

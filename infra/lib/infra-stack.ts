@@ -9,18 +9,20 @@ export interface InfraStackProps extends cdk.StackProps {
   environment: string;
   imageTag: string;
   username: string;
+  vpcCidr: string;
 }
 
 export class InfraStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: InfraStackProps) {
     super(scope, id, props);
 
-    const { environment, imageTag, username } = props;
+    const { environment, vpcCidr, imageTag, username } = props;
 
     // ネットワーク
     const network = new Network(this, 'Network', {
       environment: environment,
       username: username,
+      vpcCidr: vpcCidr,
     });
 
     // DynamoDB テーブル

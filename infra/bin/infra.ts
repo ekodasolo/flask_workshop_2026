@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import * as cdk from 'aws-cdk-lib';
 import { InfraStack } from '../lib/infra-stack';
-import { common } from '../lib/params';
+import { common, network } from '../lib/params';
 
 const app = new cdk.App();
 
@@ -15,11 +15,15 @@ const region = app.node.tryGetContext('region')
 const username = app.node.tryGetContext('username')
   ?? process.env.CDK_USERNAME
   ?? common.username;
+const vpcCidr = app.node.tryGetContext('vpccidr')
+  ?? process.env.CDK_VPC_CIDR
+  ?? network.vpcCidr;
 
 
 new InfraStack(app, 'BookReviewWorkshopStack', {
   env: { account, region },
   environment: 'workshop',
+  vpcCidr: vpcCidr,
   imageTag: 'latest',
   username: username
 });
