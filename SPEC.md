@@ -31,7 +31,8 @@
 ```
 
 - 開発は EC2 上の Code Server で行う（学習者ごとにディレクトリ分離）
-- インフラ（Fargate / ALB / DynamoDB テーブル作成）は講師側で事前準備済み
+- インフラは CDK スタックを参加者ごとにデプロイする（少人数のため人数分のスタックを作成）
+- 各スタックに VPC / ALB / Fargate / DynamoDB / ECR が含まれ、参加者ごとに独立した環境を持つ
 - EC2 インスタンスロールで DynamoDB にアクセス（アクセスキー不要）
 - テーブル名は環境変数 `TABLE_NAME` で注入
 - 全員が ECR にイメージを push した後、講師が代表者を1人選んでタスク定義を更新・デプロイ
@@ -217,10 +218,9 @@ Yohei と Tanaka がレビューを投稿すると、同じテーブルに以下
 
 - [ ] EC2 インスタンス起動・Code Server セットアップ
 - [ ] 学習者ごとのディレクトリ作成・スターターコード配置
-- [ ] DynamoDB テーブルを学習者人数分作成（`book-review-api-<username>`）
+- [ ] CDK スタックを参加者人数分デプロイ（各スタックに VPC / ALB / Fargate / DynamoDB / ECR を含む）
 - [ ] EC2 インスタンスロールに DynamoDB アクセス権限を付与
-- [ ] Fargate タスク定義・ALB セットアップ
-- [ ] ECR リポジトリ作成・push 手順を手順書に記載
+- [ ] ECR リポジトリの push 手順を手順書に記載
 - [ ] 環境変数 `TABLE_NAME` をタスク定義に設定する手順を確認
 - [ ] React アプリを Amplify にデプロイ（API エンドポイントを環境変数で設定）
 - [ ] CORS 設定を Flask アプリに追加（Amplify ドメインからのリクエストを許可）
