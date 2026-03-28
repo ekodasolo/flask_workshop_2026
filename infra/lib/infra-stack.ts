@@ -7,7 +7,6 @@ import { Application } from './constructs/application';
 
 export interface InfraStackProps extends cdk.StackProps {
   environment: string;
-  username: string;
   imageTag: string;
 }
 
@@ -15,7 +14,7 @@ export class InfraStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: InfraStackProps) {
     super(scope, id, props);
 
-    const { environment, username, imageTag } = props;
+    const { environment, imageTag } = props;
 
     // ネットワーク
     const network = new Network(this, 'Network', {
@@ -25,7 +24,6 @@ export class InfraStack extends cdk.Stack {
     // DynamoDB テーブル
     const database = new Database(this, 'Database', {
       environment: environment,
-      username: username,
     });
 
     // ECR リポジトリ

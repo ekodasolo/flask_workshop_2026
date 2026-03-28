@@ -5,12 +5,10 @@ import { common, database as params } from '../params';
 
 export interface DatabaseProps {
   environment: string;
-  username: string;
 }
 
 /**
  * DynamoDB テーブルを定義するコンストラクト
- * - 学習者ごとに book-review-api-<username> テーブルを作成
  * - PK: PK (String) / SK: SK (String)
  */
 export class Database extends Construct {
@@ -19,10 +17,10 @@ export class Database extends Construct {
   constructor(scope: Construct, id: string, props: DatabaseProps) {
     super(scope, id);
 
-    const { environment, username } = props;
+    const { environment } = props;
 
-    this.table = new dynamodb.Table(this, `DDBTable-${environment}-${username}`, {
-      tableName: `${params.tableNamePrefix}-${environment}-${username}`,
+    this.table = new dynamodb.Table(this, 'DDBTable', {
+      tableName: `${params.tableNamePrefix}-${environment}`,
       partitionKey: {
         name: 'PK',
         type: dynamodb.AttributeType.STRING,

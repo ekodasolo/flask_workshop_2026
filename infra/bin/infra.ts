@@ -12,16 +12,9 @@ const account = app.node.tryGetContext('account')
 const region = app.node.tryGetContext('region')
   ?? process.env.CDK_DEFAULT_REGION
   ?? common.region;
-const usernames: string[] = app.node.tryGetContext('usernames')
-  ?? process.env.WORKSHOP_USERNAMES?.split(',')
-  ?? common.usernames;
 
-// 参加者ごとに独立したスタックをデプロイする
-for (const username of usernames) {
-  new InfraStack(app, `BookReviewWorkshop-${username}`, {
-    env: { account, region },
-    environment: 'workshop',
-    username,
-    imageTag: 'latest',
-  });
-}
+new InfraStack(app, 'BookReviewWorkshopStack', {
+  env: { account, region },
+  environment: 'workshop',
+  imageTag: 'latest',
+});
