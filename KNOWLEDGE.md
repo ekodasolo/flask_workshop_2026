@@ -30,3 +30,58 @@ import type { Book } from './types';
 空文字列 `''` や `0` をフォールバックしたい場合は `||` を使う。意図的に「値が未設定のとき」だけフォールバックしたい場合は `??` を使い、初期値に `null` / `undefined` 以外を設定しないよう注意する。
 
 - **関連 ISSUE**: ISSUE-003
+
+---
+
+### KN-003: CDK のパラメータ管理パターン — params.ts + コンテキスト変数の2層構造
+
+デフォルト値を `params.ts` に集約し、デプロイ時にコンテキスト変数（`-c key=value`）で上書きする構成が使いやすい。
+
+```typescript
+// bin/infra.ts での解決優先順位
+const username = app.node.tryGetContext('username')   // 1. コンテキスト変数
+  ?? process.env.CDK_USERNAME                         // 2. 環境変数
+  ?? common.username;                                 // 3. params.ts のデフォルト値
+```
+
+- `params.ts` を見ればデフォルト構成が一目でわかる
+- デプロイ時の上書きで同一定義から複数環境を作成できる
+- `package.json` の npm scripts にコンテキスト変数を埋め込めば、ユーザーごとのショートカットになる
+
+---
+
+### KN-004: CDK のコンストラクト設計 — スタック構成変更に強くする
+
+コンストラクト（部品）を独立して設計しておけば、スタック構成の変更が容易になる。
+
+**実例**: 1スタック構成 → BaseStack（ECR + DynamoDB）と AppStack（VPC + ALB + Fargate）の2スタックに分割した際、コンストラクト自体は無修正で済んだ。
+
+ポイント:
+- コンストラクトは他のコンストラクトに直接依存しない（props で受け取る）
+- スタックはコンストラクトの「組み合わせ方」だけを定義する
+- スタック間の参照は CDK のオブジェクト参照で自動解決される（`CfnOutput` / `Fn::ImportValue` を CDK が生成）
+
+---
+
+### KN-005: CDK の destroy でもコンテキスト変数が必要な理由
+
+`cdk destroy` は内部で synth（CloudFormation テンプレート生成）を実行してからスタックを削除する。そのため、TypeScript コード内で参照しているコンテキスト変数が解決できないとエラーになる。
+
+CDK の全操作は **synth → CloudFormation API 呼び出し** の2段階で動いている:
+- `cdk deploy` → synth → CreateStack / UpdateStack
+- `cdk destroy` → synth → DeleteStack
+- `cdk diff` → synth → テンプレート同士を比較
+
+---
+
+### KN-006: CDK スタック分割で鶏と卵問題を解消する
+
+Fargate タスクが ECR からイメージを pull する構成では、初回デプロイ時に ECR にイメージがないためタスクが起動できない。
+
+**解決策**: ECR + DynamoDB を含む BaseStack を先にデプロイし、イメージ push 後に Fargate を含む AppStack をデプロイする。CDK App 内の特定スタックだけを `cdk deploy <スタック名>` で個別にデプロイできる。
+
+```bash
+cdk deploy BookReviewBase-fuji    # 1. ECR + DynamoDB
+docker build & push                # 2. イメージ push
+cdk deploy BookReviewApp-fuji     # 3. VPC + ALB + Fargate
+```
