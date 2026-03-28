@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import * as cdk from 'aws-cdk-lib';
-import { InfraStack } from '../lib/infra-stack';
+import { BaseStack } from '../lib/base-stack';
+import { AppStack } from '../lib/app-stack';
 import { common, network } from '../lib/params';
 
 const app = new cdk.App();
@@ -19,11 +20,24 @@ const vpcCidr = app.node.tryGetContext('vpccidr')
   ?? process.env.CDK_VPC_CIDR
   ?? network.vpcCidr;
 
+const env = { account, region };
 
-new InfraStack(app, 'BookReviewWorkshopStack', {
-  env: { account, region },
+// BaseStack: ECR + DynamoDB（先にデプロイ）
+const baseStack = new BaseStack(app, `BookReviewBase-${username}`, {
+  env,
   environment: 'workshop',
-  vpcCidr: vpcCidr,
-  imageTag: 'latest',
-  username: username
+  username,
 });
+
+// AppStack: VPC + ALB + Fargate（イメージ push 後にデプロイ）
+const appStack = new AppStack(app, `BookReviewApp-${username}`, {
+  env,
+  environment: 'workshop',
+  username,
+  vpcCidr,
+  imageTag: 'latest',
+  repository: baseStack.repository,
+  table: baseStack.table,
+});
+
+appStack.addDependency(baseStack);
