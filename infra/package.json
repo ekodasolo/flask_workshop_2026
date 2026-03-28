@@ -8,7 +8,13 @@
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
-    "cdk": "cdk"
+    "cdk": "cdk",
+    "deploy:fuji": "cdk deploy -c username=fuji -c vpccidr=10.0.0.0/16",
+    "deploy:user1": "cdk deploy -c username=user1 -c vpccidr=10.1.0.0/16",
+    "deploy:user2": "cdk deploy -c username=user2 -c vpccidr=10.2.0.0/16",
+    "destroy:fuji": "cdk destroy -c username=fuji -c vpccidr=10.0.0.0/16",
+    "destroy:user1": "cdk destroy -c username=user1 -c vpccidr=10.1.0.0/16",
+    "destroy:user2": "cdk destroy -c username=user2 -c vpccidr=10.2.0.0/16"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",
