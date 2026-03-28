@@ -5,6 +5,7 @@ import { common, database as params } from '../params';
 
 export interface DatabaseProps {
   environment: string;
+  username: string;
 }
 
 /**
@@ -17,10 +18,10 @@ export class Database extends Construct {
   constructor(scope: Construct, id: string, props: DatabaseProps) {
     super(scope, id);
 
-    const { environment } = props;
+    const { environment, username } = props;
 
     this.table = new dynamodb.Table(this, 'DDBTable', {
-      tableName: `${params.tableNamePrefix}-${environment}`,
+      tableName: `${params.tableNamePrefix}-${environment}-${username}-table`,
       partitionKey: {
         name: 'PK',
         type: dynamodb.AttributeType.STRING,

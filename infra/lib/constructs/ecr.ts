@@ -4,7 +4,8 @@ import * as cdk from 'aws-cdk-lib';
 import { common, ecr as params } from '../params';
 
 export interface EcrProps {
-  environment: string
+  environment: string;
+  username: string;
 }
 
 /**
@@ -17,10 +18,10 @@ export class Ecr extends Construct {
   constructor(scope: Construct, id: string, props: EcrProps) {
     super(scope, id);
 
-    const { environment } = props;
+    const { environment, username } = props;
 
     this.repository = new ecr.Repository(this, 'EcrRepo', {
-      repositoryName: `${params.repositoryName}-${environment}-repo`,
+      repositoryName: `${params.repositoryName}-${environment}-${username}-repo`,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       emptyOnDelete: true,
     });

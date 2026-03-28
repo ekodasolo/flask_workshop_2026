@@ -12,9 +12,14 @@ const account = app.node.tryGetContext('account')
 const region = app.node.tryGetContext('region')
   ?? process.env.CDK_DEFAULT_REGION
   ?? common.region;
+const username = app.node.tryGetContext('username')
+  ?? process.env.CDK_USERNAME
+  ?? common.username;
+
 
 new InfraStack(app, 'BookReviewWorkshopStack', {
   env: { account, region },
   environment: 'workshop',
   imageTag: 'latest',
+  username: username
 });

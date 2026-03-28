@@ -8,27 +8,31 @@ import { Application } from './constructs/application';
 export interface InfraStackProps extends cdk.StackProps {
   environment: string;
   imageTag: string;
+  username: string;
 }
 
 export class InfraStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: InfraStackProps) {
     super(scope, id, props);
 
-    const { environment, imageTag } = props;
+    const { environment, imageTag, username } = props;
 
     // ネットワーク
     const network = new Network(this, 'Network', {
-      environment: environment
+      environment: environment,
+      username: username,
     });
 
     // DynamoDB テーブル
     const database = new Database(this, 'Database', {
       environment: environment,
+      username: username,
     });
 
     // ECR リポジトリ
     const ecr = new Ecr(this, 'Ecr', {
       environment: environment,
+      username: username,
     });
 
     // ALB + Fargate

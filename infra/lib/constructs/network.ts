@@ -5,6 +5,7 @@ import { common, network as params } from '../params';
 
 export interface NetworkProps {
   environment: string,
+  username: string,
 }
 
 /**
@@ -17,7 +18,7 @@ export class Network extends Construct {
   constructor(scope: Construct, id: string, props: NetworkProps) {
     super(scope, id);
 
-    const { environment } = props;
+    const { environment, username } = props;
 
     // VPC
     this.vpc = new ec2.Vpc(this, 'VPC', {
@@ -39,6 +40,6 @@ export class Network extends Construct {
     });
 
     // Tag
-    cdk.Tags.of(this.vpc).add('Name', `${common.projectName}-${environment}-vpc`)
+    cdk.Tags.of(this.vpc).add('Name', `${common.projectName}-${environment}-${username}-vpc`)
   }
 }

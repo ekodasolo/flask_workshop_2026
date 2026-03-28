@@ -11,6 +11,7 @@ import { common, application as params } from '../params';
 
 export interface ApplicationProps {
   environment: string;
+  username: string;
   vpc: ec2.Vpc;
   repository: ecr.Repository;
   imageTag: string;
@@ -32,7 +33,7 @@ export class Application extends Construct {
     super(scope, id);
 
     // Constructor props
-    const { environment, vpc, repository, imageTag, table } = props;
+    const { environment, username, vpc, repository, imageTag, table } = props;
 
     // Security Group for ALB
     const albSecurityGroup = new ec2.SecurityGroup(this, 'ALBSecurityGroup', {
@@ -77,7 +78,7 @@ export class Application extends Construct {
     // ECS Cluster
     const cluster = new ecs.Cluster(this, 'EcsCluster', {
       vpc,
-      clusterName: `${common.projectName}-${props.environment}-ecs-cluster`,
+      clusterName: `${common.projectName}-${environment}-${username}-cluster`,
     });
     this.ecsCluster = cluster;
 

@@ -8,6 +8,7 @@ export const common = {
   projectName: 'book-review-api',
   account: '123456789012',
   region: 'ap-northeast-1',
+  username: 'fuji',
 };
 
 /** Network コンストラクト */
