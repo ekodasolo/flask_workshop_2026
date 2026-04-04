@@ -90,6 +90,163 @@ routes/
 
 ---
 
+## DynamoDB を理解する
+
+### DynamoDB とは
+
+Amazon DynamoDB は AWS が提供する **NoSQL データベース**です。MySQL や PostgreSQL のようなリレーショナルデータベース（RDB）とは設計思想が異なります。
+
+```
+RDB（MySQL など）:
+  テーブル → 行と列で構成（Excel のようなイメージ）
+  テーブル間を JOIN して関連データを取得する
+  スキーマ（列定義）が固定
+
+DynamoDB（NoSQL）:
+  テーブル → アイテム（項目）の集合
+  JOIN はない。1 つのテーブルに関連データをまとめて格納する
+  キー以外の属性は自由（アイテムごとに異なる属性を持てる）
+```
+
+### キー設計 — PK と SK
+
+DynamoDB のテーブルは **PK（Partition Key）** と **SK（Sort Key）** の 2 つのキーでアイテムを識別します。
+
+| 概念 | RDB での対応 | 説明 |
+|---|---|---|
+| PK（Partition Key） | 主キーの一部 | データの格納先を決める。同じ PK のアイテムは近くに保存される |
+| SK（Sort Key） | 主キーの一部 | PK 内でアイテムを区別・並び替える |
+| PK + SK の組み合わせ | 複合主キー | テーブル内でアイテムを一意に特定する |
+
+今回のハンズオンでは、書籍とレビューを **1 つのテーブル** に格納します（シングルテーブル設計）:
+
+```
+PK                  SK                  title           author          rating  comment
+─────────────────────────────────────────────────────────────────────────────────────────
+BOOK#aaa-111        METADATA            Clean Code      Robert Martin   -       -
+BOOK#aaa-111        REVIEW#xxx-001      -               -               5       素晴らしい
+BOOK#aaa-111        REVIEW#xxx-002      -               -               4       良い本
+BOOK#bbb-222        METADATA            リーダブルコード  Dustin Boswell  -       -
+```
+
+- **書籍レコード**: PK が `BOOK#<book_id>`、SK が `METADATA`
+- **レビューレコード**: PK が `BOOK#<book_id>`、SK が `REVIEW#<review_id>`
+
+同じ `PK = BOOK#aaa-111` のアイテムには、その書籍の情報（METADATA）とレビューがまとまっています。これにより、ある書籍のレビュー一覧を **1 回のクエリ** で効率的に取得できます。
+
+### Python から DynamoDB を操作する — boto3
+
+AWS のサービスを Python から操作するには **boto3** というライブラリを使います。DynamoDB のアイテム操作でよく使うメソッドを見ていきましょう。
+
+#### テーブルへの接続
+
+```python
+import boto3
+
+dynamodb = boto3.resource('dynamodb')
+table = dynamodb.Table('テーブル名')
+```
+
+`boto3.resource('dynamodb')` で DynamoDB に接続し、`.Table('テーブル名')` で操作対象のテーブルを取得します。
+
+#### アイテムの書き込み — `put_item`
+
+```python
+table.put_item(Item={
+    'PK': 'BOOK#aaa-111',
+    'SK': 'METADATA',
+    'title': 'Clean Code',
+    'author': 'Robert Martin',
+    'description': '読みやすいコードの書き方を解説した名著',
+    'created_at': '2024-01-15T10:00:00Z',
+})
+```
+
+Python の辞書をそのまま渡すだけです。RDB のように `INSERT INTO ... VALUES (...)` のような SQL を書く必要はありません。
+
+#### アイテムの取得 — `get_item`
+
+```python
+response = table.get_item(Key={
+    'PK': 'BOOK#aaa-111',
+    'SK': 'METADATA',
+})
+item = response.get('Item')  # アイテムが見つからなければ None
+```
+
+PK と SK を指定して **1 件** を取得します。結果は `response['Item']` に辞書として入っています。
+
+#### 全件取得 — `scan`
+
+```python
+response = table.scan()
+items = response.get('Items', [])
+```
+
+テーブルの全アイテムを取得します。書籍もレビューも全て返ってくるので、アプリケーション側で `SK == 'METADATA'` のようにフィルタリングします。
+
+#### 条件付き取得 — `query`
+
+```python
+from boto3.dynamodb.conditions import Key
+
+response = table.query(
+    KeyConditionExpression=Key('PK').eq('BOOK#aaa-111') & Key('SK').begins_with('REVIEW#')
+)
+reviews = response.get('Items', [])
+```
+
+`query` は PK を指定して、その PK に属するアイテムを取得します。SK の条件も付けられるので、「ある書籍のレビューだけ」を効率的に取得できます。`scan` との違いは、`query` が **必要なアイテムだけ** を取得する点です。
+
+#### アイテムの削除 — `delete_item`
+
+```python
+table.delete_item(Key={
+    'PK': 'BOOK#aaa-111',
+    'SK': 'METADATA',
+})
+```
+
+PK と SK を指定して削除します。
+
+#### アイテムの更新 — `update_item`
+
+```python
+response = table.update_item(
+    Key={
+        'PK': 'BOOK#aaa-111',
+        'SK': 'METADATA',
+    },
+    UpdateExpression='SET #title = :title, #author = :author',
+    ExpressionAttributeNames={
+        '#title': 'title',
+        '#author': 'author',
+    },
+    ExpressionAttributeValues={
+        ':title': '新しいタイトル',
+        ':author': '新しい著者',
+    },
+    ReturnValues='ALL_NEW',
+)
+updated_item = response['Attributes']
+```
+
+`update_item` は他のメソッドに比べて複雑です。各パラメータの役割を整理しましょう:
+
+| パラメータ | 役割 | 例 |
+|---|---|---|
+| `Key` | 更新対象のアイテムを指定 | `{'PK': '...', 'SK': '...'}` |
+| `UpdateExpression` | 何をどう更新するかの式 | `'SET #title = :title'` |
+| `ExpressionAttributeNames` | `#` 付きプレースホルダーと実際の属性名の対応 | `{'#title': 'title'}` |
+| `ExpressionAttributeValues` | `:` 付きプレースホルダーと実際の値の対応 | `{':title': '新しいタイトル'}` |
+| `ReturnValues` | 更新後のアイテムを返すかどうか | `'ALL_NEW'` で更新後の全属性を返す |
+
+> **⚠️ 注意: パラメータ名は PascalCase（先頭大文字）**
+>
+> boto3 の DynamoDB API では、パラメータ名は `ExpressionAttributeValues` のように **各単語の先頭が大文字** です。`expressionAttributeValues`（小文字始まり）と書くとエラーになります。Python の変数名の慣習（snake_case）とは異なるので注意してください。
+
+---
+
 ## 0. 環境確認（10 分）
 
 > **SPEC.md を確認**: 「概要」「システム構成」「ディレクトリ構成」セクションを読んで、今日作るものの全体像を把握してください。
