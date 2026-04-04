@@ -1,0 +1,132 @@
+============================================================
+Flask + DynamoDB REST API ハンズオン コマンドスニペット
+============================================================
+
+書き換えが必要な箇所:
+  <book_id>     ... 書籍登録時のレスポンスに含まれる book_id を貼り付ける
+  <review_id>   ... レビュー投稿時のレスポンスに含まれる review_id を貼り付ける
+  <アカウントID> ... 講師から案内される 12 桁の AWS アカウント ID
+
+
+------------------------------------------------------------
+0. 環境構築
+------------------------------------------------------------
+
+python -m venv .venv
+
+source .venv/bin/activate
+
+cp .env.example .env
+
+pip install -r requirements.txt
+
+
+------------------------------------------------------------
+1. Hello Flask
+------------------------------------------------------------
+
+python app.py
+
+curl -s http://localhost:5000/api/v1/books | python -m json.tool
+
+
+------------------------------------------------------------
+2. Books CRUD
+------------------------------------------------------------
+
+# Flask 起動（別ターミナルでコマンドを実行する場合）
+python app.py
+
+# 2-1. 書籍一覧取得
+curl -s http://localhost:5000/api/v1/books | python -m json.tool
+
+# 2-2. 書籍登録
+curl -s -X POST http://localhost:5000/api/v1/books \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Clean Code", "author": "Robert C. Martin", "description": "読みやすいコードの書き方"}' \
+  | python -m json.tool
+
+# 2-3. 書籍詳細取得（<book_id> を書き換える）
+curl -s http://localhost:5000/api/v1/books/<book_id> | python -m json.tool
+
+# 2-4. 書籍更新（<book_id> を書き換える）
+curl -s -X PUT http://localhost:5000/api/v1/books/<book_id> \
+  -H "Content-Type: application/json" \
+  -d '{"description": "コードの品質を高めるベストプラクティス集"}' \
+  | python -m json.tool
+
+# 2-5. 書籍削除（<book_id> を書き換える）
+curl -s -X DELETE http://localhost:5000/api/v1/books/<book_id> | python -m json.tool
+
+
+------------------------------------------------------------
+3. Reviews CRUD
+------------------------------------------------------------
+
+# 先に書籍を 1 件登録しておく
+curl -s -X POST http://localhost:5000/api/v1/books \
+  -H "Content-Type: application/json" \
+  -d '{"title": "リーダブルコード", "author": "Dustin Boswell", "description": "より良いコードを書くためのシンプルで実践的なテクニック"}' \
+  | python -m json.tool
+
+# 3-1. レビュー投稿（<book_id> を書き換える）
+curl -s -X POST http://localhost:5000/api/v1/books/<book_id>/reviews \
+  -H "Content-Type: application/json" \
+  -d '{"reviewer": "Yohei", "rating": 5, "comment": "実務で即使える内容でした"}' \
+  | python -m json.tool
+
+# 3-2. レビュー一覧取得（<book_id> を書き換える）
+curl -s http://localhost:5000/api/v1/books/<book_id>/reviews | python -m json.tool
+
+
+------------------------------------------------------------
+4. エラーハンドリング確認
+------------------------------------------------------------
+
+# 400: 必須フィールドが足りない
+curl -s -X POST http://localhost:5000/api/v1/books \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Clean Code"}' \
+  | python -m json.tool
+
+# 400: リクエストボディが空
+curl -s -X POST http://localhost:5000/api/v1/books \
+  -H "Content-Type: application/json" \
+  | python -m json.tool
+
+# 400: rating が範囲外（<book_id> を書き換える）
+curl -s -X POST http://localhost:5000/api/v1/books/<book_id>/reviews \
+  -H "Content-Type: application/json" \
+  -d '{"reviewer": "Yohei", "rating": 10, "comment": "テスト"}' \
+  | python -m json.tool
+
+# 404: 存在しない書籍を取得
+curl -s http://localhost:5000/api/v1/books/nonexistent-id | python -m json.tool
+
+# 404: 存在しない書籍を更新
+curl -s -X PUT http://localhost:5000/api/v1/books/nonexistent-id \
+  -H "Content-Type: application/json" \
+  -d '{"title": "New Title"}' \
+  | python -m json.tool
+
+# 404: 存在しない書籍のレビューを取得
+curl -s http://localhost:5000/api/v1/books/nonexistent-id/reviews | python -m json.tool
+
+
+------------------------------------------------------------
+5. デプロイ
+------------------------------------------------------------
+
+# 5-1. Docker イメージをビルド
+docker build -t book-review-api .
+
+# 5-2. ECR にログイン（<アカウントID> を書き換える）
+aws ecr get-login-password --region ap-northeast-1 \
+  | docker login --username AWS --password-stdin <アカウントID>.dkr.ecr.ap-northeast-1.amazonaws.com
+
+# 5-3. Docker イメージにタグを付ける（<アカウントID> を書き換える）
+docker tag book-review-api:latest \
+  <アカウントID>.dkr.ecr.ap-northeast-1.amazonaws.com/book-review-api:latest
+
+# 5-4. ECR に push（<アカウントID> を書き換える）
+docker push <アカウントID>.dkr.ecr.ap-northeast-1.amazonaws.com/book-review-api:latest
