@@ -14,4 +14,5 @@
 | 6. 本番動作確認 | [07-production-test.md](07-production-test.md) | 20 分 |
 
 **補助資料**:
+- [API仕様書](API-SPEC.md) - 今回構築するREST APIの仕様書
 - [command.txt](command.txt) — チャプター別 curl コマンドスニペット集（コピペ用）
