@@ -12,6 +12,14 @@ Flask + DynamoDB REST API ハンズオン コマンドスニペット
 0. 環境構築
 ------------------------------------------------------------
 
+cd ~/projects/flask_workshop/<user_name>
+
+git clone https://github.com/ekodasolo/flask_workshop_2026
+
+cp -r flask_workshop_2026/starter flask_workshop_2026/working
+
+cd flask_workshop_2026/working
+
 python -m venv .venv
 
 source .venv/bin/activate

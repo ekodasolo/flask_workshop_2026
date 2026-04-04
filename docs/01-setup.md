@@ -6,16 +6,37 @@
 
 講師から共有された URL にブラウザでアクセスしてください。
 
-### 0-2. 自分のディレクトリに移動する
+### 0-2. 自分の作業ディレクトリに移動する
+
+講師が用意したディレクトリに移動します。`<user_name>` は自分のユーザー名に置き換えてください。
 
 ```bash
-cd ~/app
+cd ~/projects/flask_workshop/<user_name>
 ```
 
-### 0-3. ファイル構成を確認する
+### 0-3. ハンズオン教材をクローンする
+
+GitHub からハンズオン教材をクローンします。
+
+```bash
+git clone https://github.com/ekodasolo/flask_workshop_2026
+```
+
+クローンしたリポジトリの `starter/` ディレクトリに骨格コード（TODO 付き）が入っています。これを `working/` ディレクトリにコピーして、`working/` 以下で作業します。
+
+```bash
+cp -r flask_workshop_2026/starter flask_workshop_2026/working
+cd flask_workshop_2026/working
+```
+
+> **なぜコピーするのか**: `starter/` はオリジナルの骨格コードとして残しておきます。実装に詰まったときに元のコードを確認したり、最初からやり直したりできます。
+
+### 0-4. ファイル構成を確認する
+
+`working/` ディレクトリの中身を確認しましょう。
 
 ```
-app/
+working/
 ├── app.py              # Flask アプリ（一部 TODO あり）
 ├── routes/
 │   ├── books.py        # Books エンドポイント（TODO を実装する）
@@ -27,7 +48,7 @@ app/
 └── Dockerfile          # Docker 設定（変更不要）
 ```
 
-### 0-4. Python 仮想環境を作成する
+### 0-5. Python 仮想環境を作成する
 
 #### 仮想環境（venv）とは
 
@@ -59,14 +80,14 @@ source .venv/bin/activate
 有効化されると、ターミナルのプロンプトの先頭に `(.venv)` と表示されます。
 
 ```
-(.venv) user@host:~/app$
+(.venv) user@host:~/projects/flask_workshop/<user_name>/flask_workshop_2026/working$
 ```
 
 > **重要**: ターミナルを開き直したら、毎回 `source .venv/bin/activate` を実行してください。有効化を忘れるとグローバル環境にパッケージがインストールされてしまいます。
 >
 > 仮想環境を抜けたいときは `deactivate` コマンドを実行します（今回のハンズオンでは基本的に抜ける必要はありません）。
 
-### 0-5. 環境変数を設定する
+### 0-6. 環境変数を設定する
 
 `.env.example` をコピーして `.env` ファイルを作成します。
 
@@ -84,7 +105,7 @@ TABLE_NAME=book-review-api-<あなたのユーザー名>
 >
 > `.env` には接続先やパスワードなどの秘密情報が入ることがあるため、`.gitignore` に含めて Git にコミットしないのが鉄則です。代わりに `.env.example` をテンプレートとして配布します。
 
-### 0-6. 依存パッケージをインストールする
+### 0-7. 依存パッケージをインストールする
 
 ```bash
 pip install -r requirements.txt
