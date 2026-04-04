@@ -71,6 +71,7 @@ def list_reviews(book_id):   # ← URL の <book_id> がここに入る
 > 書籍の存在確認と `try-except` は提供済みです。TODO コメントの `pass` を以下のコードに置き換えてください。
 
 ```python
+        # DynamoDB を query して PK が一致し、SK が 'REVIEW#' で始まるアイテムを取得する
         response = table.query(
             KeyConditionExpression=Key('PK').eq(f'BOOK#{book_id}') & Key('SK').begins_with('REVIEW#')
         )
@@ -124,6 +125,7 @@ SPEC.md の具体例で考えてみましょう。テーブルに 4 件のアイ
 > 書籍の存在確認、バリデーション、UUID/timestamp 生成は提供済みです。TODO コメントの `pass` を以下のコードに置き換えてください。
 
 ```python
+        # DynamoDB にアイテムを書き込む
         item = {
             'PK': f'BOOK#{book_id}',
             'SK': f'REVIEW#{review_id}',
@@ -134,6 +136,7 @@ SPEC.md の具体例で考えてみましょう。テーブルに 4 件のアイ
         }
         table.put_item(Item=item)
 
+        # 登録したレビューオブジェクトを返す
         review = {
             'review_id': review_id,
             'book_id': book_id,
