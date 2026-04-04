@@ -135,22 +135,31 @@ Yohei と Tanaka がレビューを投稿すると、同じテーブルに以下
 
 ## API エンドポイント
 
-### Books
+REST API では、**URI（リソースの場所）** と **HTTP メソッド（操作の種類）** の組み合わせで「何に対して何をするか」を表現する。同じ URI でもメソッドが違えば異なる操作になる。
 
-| メソッド | パス | 処理 |
-|---|---|---|
-| GET | `/api/v1/books` | 書籍一覧取得（scan） |
-| POST | `/api/v1/books` | 書籍登録（put_item） |
-| GET | `/api/v1/books/<book_id>` | 書籍詳細取得（get_item） |
-| PUT | `/api/v1/books/<book_id>` | 書籍更新（update_item） |
-| DELETE | `/api/v1/books/<book_id>` | 書籍削除（delete_item） |
+### Books — `/api/v1/books`
 
-### Reviews
+書籍リソースに対する CRUD 操作。
 
-| メソッド | パス | 処理 |
-|---|---|---|
-| GET | `/api/v1/books/<book_id>/reviews` | レビュー一覧取得（query + begins_with） |
-| POST | `/api/v1/books/<book_id>/reviews` | レビュー投稿（put_item） |
+| API 操作 | メソッド | パス | DynamoDB 操作 |
+|---|---|---|---|
+| ListBooks（一覧取得） | GET | `/api/v1/books` | scan |
+| CreateBook（新規登録） | POST | `/api/v1/books` | put_item |
+| GetBook（詳細取得） | GET | `/api/v1/books/<book_id>` | get_item |
+| UpdateBook（更新） | PUT | `/api/v1/books/<book_id>` | update_item |
+| DeleteBook（削除） | DELETE | `/api/v1/books/<book_id>` | delete_item |
+
+- `/books` はコレクション（書籍の集合）を指し、一覧取得や新規登録の対象になる
+- `/books/<book_id>` は個別のリソースを指し、取得・更新・削除の対象になる
+
+### Reviews — `/api/v1/books/<book_id>/reviews`
+
+レビューは書籍に従属するサブリソース。URI に親リソースの `book_id` を含めることで、どの書籍に対するレビューかを表現する。
+
+| API 操作 | メソッド | パス | DynamoDB 操作 |
+|---|---|---|---|
+| ListReviews（一覧取得） | GET | `/api/v1/books/<book_id>/reviews` | query + begins_with |
+| CreateReview（投稿） | POST | `/api/v1/books/<book_id>/reviews` | put_item |
 
 ---
 
