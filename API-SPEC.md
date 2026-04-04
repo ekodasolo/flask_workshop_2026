@@ -4,6 +4,28 @@
 
 ---
 
+## 概要
+
+### 目的
+
+社内メンバーが読んだ技術書の感想を共有・蓄積するための REST API。書籍の登録・管理と、書籍に対するレビューの投稿・閲覧を提供する。
+
+### 基本機能
+
+| 機能 | 説明 |
+|---|---|
+| 書籍管理 | 書籍の登録・一覧表示・詳細表示・更新・削除（CRUD） |
+| レビュー投稿 | 書籍に対するレビュー（レビュアー名・5段階評価・コメント）の投稿・一覧表示 |
+
+### ユーザーストーリー
+
+1. メンバーが読んだ本を **書籍として登録** する
+2. 他のメンバーがその書籍を **一覧から見つけて** 詳細を確認する
+3. 読んだことがあるメンバーが **レビューを投稿** する（評価とコメント）
+4. レビューを見たメンバーが **次に読む本を選ぶ参考にする**
+
+---
+
 ## DynamoDB テーブル設計
 
 ### キー・バリューストアとは — Python の辞書から考える
@@ -113,22 +135,31 @@ Yohei と Tanaka がレビューを投稿すると、同じテーブルに以下
 
 ## API エンドポイント
 
-### Books
+REST API では、**URI（リソースの場所）** と **HTTP メソッド（操作の種類）** の組み合わせで「何に対して何をするか」を表現する。同じ URI でもメソッドが違えば異なる操作になる。
 
-| メソッド | パス | 処理 |
-|---|---|---|
-| GET | `/api/v1/books` | 書籍一覧取得（scan） |
-| POST | `/api/v1/books` | 書籍登録（put_item） |
-| GET | `/api/v1/books/<book_id>` | 書籍詳細取得（get_item） |
-| PUT | `/api/v1/books/<book_id>` | 書籍更新（update_item） |
-| DELETE | `/api/v1/books/<book_id>` | 書籍削除（delete_item） |
+### Books — `/api/v1/books`
 
-### Reviews
+書籍リソースに対する CRUD 操作。
 
-| メソッド | パス | 処理 |
-|---|---|---|
-| GET | `/api/v1/books/<book_id>/reviews` | レビュー一覧取得（query + begins_with） |
-| POST | `/api/v1/books/<book_id>/reviews` | レビュー投稿（put_item） |
+| API 操作 | メソッド | パス | DynamoDB 操作 |
+|---|---|---|---|
+| ListBooks（一覧取得） | GET | `/api/v1/books` | scan |
+| CreateBook（新規登録） | POST | `/api/v1/books` | put_item |
+| GetBook（詳細取得） | GET | `/api/v1/books/<book_id>` | get_item |
+| UpdateBook（更新） | PUT | `/api/v1/books/<book_id>` | update_item |
+| DeleteBook（削除） | DELETE | `/api/v1/books/<book_id>` | delete_item |
+
+- `/books` はコレクション（書籍の集合）を指し、一覧取得や新規登録の対象になる
+- `/books/<book_id>` は個別のリソースを指し、取得・更新・削除の対象になる
+
+### Reviews — `/api/v1/books/<book_id>/reviews`
+
+レビューは書籍に従属するサブリソース。URI に親リソースの `book_id` を含めることで、どの書籍に対するレビューかを表現する。
+
+| API 操作 | メソッド | パス | DynamoDB 操作 |
+|---|---|---|---|
+| ListReviews（一覧取得） | GET | `/api/v1/books/<book_id>/reviews` | query + begins_with |
+| CreateReview（投稿） | POST | `/api/v1/books/<book_id>/reviews` | put_item |
 
 ---
 
@@ -345,3 +376,89 @@ Yohei と Tanaka がレビューを投稿すると、同じテーブルに以下
 | 未捕捉例外 | `@app.errorhandler(500)` | その他の予期しないエラー |
 
 エラーレスポンスは全て `{"error": "<message>"}` の形式に統一する。
+
+---
+
+## バックエンド設計
+
+### アプリケーション構成
+
+```
+app.py
+ └── Flask インスタンスを生成する
+ └── flask-cors で CORS を設定する
+ └── books_bp・reviews_bp を登録する（url_prefix='/api/v1'）
+ └── 404・500 エラーハンドラーを定義する
+
+db/dynamo.py
+ └── 環境変数 TABLE_NAME を読み込む
+ └── boto3 で DynamoDB リソースを初期化する
+ └── get_table() でテーブルオブジェクトを返す
+
+routes/books.py
+ └── Blueprint 'books' を定義する
+ └── 各エンドポイントの関数を実装する
+
+routes/reviews.py
+ └── Blueprint 'reviews' を定義する
+ └── 各エンドポイントの関数を実装する
+```
+
+### 各エンドポイントのロジックフロー
+
+**`GET /books`**
+1. `scan()` で全アイテムを取得
+2. `SK == 'METADATA'` のアイテムだけを抽出
+3. 書籍リストを返す
+
+**`POST /books`**
+1. リクエストボディを取得・バリデーション
+2. `uuid4()` で `book_id` を生成
+3. `put_item()` で書籍レコードを書き込む
+4. 登録した書籍オブジェクトを 201 で返す
+
+**`GET /books/<book_id>`**
+1. `get_item(PK=BOOK#<book_id>, SK=METADATA)` で取得
+2. 存在しなければ 404
+3. 書籍オブジェクトを返す
+
+**`PUT /books/<book_id>`**
+1. `get_item()` で存在確認、なければ 404
+2. リクエストボディから変更フィールドを取得
+3. `update_item()` で該当フィールドを更新
+4. 更新後の書籍オブジェクトを返す
+
+**`DELETE /books/<book_id>`**
+1. `get_item()` で存在確認、なければ 404
+2. `delete_item(PK=BOOK#<book_id>, SK=METADATA)` で削除
+3. 完了メッセージを返す
+
+**`GET /books/<book_id>/reviews`**
+1. `get_item()` で書籍の存在確認、なければ 404
+2. `query(PK=BOOK#<book_id>, SK begins_with 'REVIEW#')` でレビュー一覧を取得
+3. レビューリストを返す
+
+**`POST /books/<book_id>/reviews`**
+1. `get_item()` で書籍の存在確認、なければ 404
+2. リクエストボディを取得・バリデーション
+3. `uuid4()` で `review_id` を生成
+4. `put_item()` でレビューレコードを書き込む
+5. 登録したレビューオブジェクトを 201 で返す
+
+### 環境変数
+
+| 変数名 | 説明 | 設定箇所 |
+|---|---|---|
+| `TABLE_NAME` | DynamoDB テーブル名（`book-review-api-workshop`） | Fargate タスク定義 |
+| `FLASK_ENV` | `production` 固定 | Dockerfile |
+
+### CORS 設定
+
+Amplify（フロントエンド）からのリクエストを受け付けるため `flask-cors` を使用する。
+
+```python
+from flask_cors import CORS
+CORS(app)
+```
+
+開発時は全オリジンを許可し、本番では Amplify のドメインに絞ることが望ましいが、ハンズオンでは全許可で統一する。
