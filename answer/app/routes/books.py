@@ -30,6 +30,7 @@ def list_books():
 
         return jsonify({'books': books})
     except (BotoCoreError, ClientError) as e:
+        print(e)
         abort(500)
 
 
@@ -71,6 +72,7 @@ def create_book():
         }
         return jsonify(book), 201
     except (BotoCoreError, ClientError) as e:
+        print(e)
         abort(500)
 
 
@@ -97,6 +99,7 @@ def get_book(book_id):
         }
         return jsonify(book)
     except (BotoCoreError, ClientError) as e:
+        print(e)
         abort(500)
 
 
@@ -150,6 +153,7 @@ def update_book(book_id):
         }
         return jsonify(book)
     except (BotoCoreError, ClientError) as e:
+        print(e)
         abort(500)
 
 
@@ -169,4 +173,5 @@ def delete_book(book_id):
 
         return jsonify({'message': 'Book deleted'})
     except (BotoCoreError, ClientError) as e:
+        print(e)
         abort(500)

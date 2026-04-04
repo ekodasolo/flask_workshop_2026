@@ -30,6 +30,7 @@ def list_reviews(book_id):
         pass
 
     except (BotoCoreError, ClientError) as e:
+        print(e)
         abort(500)
 
 
@@ -71,4 +72,5 @@ def create_review(book_id):
         pass
 
     except (BotoCoreError, ClientError) as e:
+        print(e)
         abort(500)

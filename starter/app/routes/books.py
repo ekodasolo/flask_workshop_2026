@@ -53,6 +53,7 @@ def get_book(book_id):
         pass
 
     except (BotoCoreError, ClientError) as e:
+        print(e)
         abort(500)
 
 
@@ -90,6 +91,7 @@ def update_book(book_id):
         pass
 
     except (BotoCoreError, ClientError) as e:
+        print(e)
         abort(500)
 
 
@@ -112,4 +114,5 @@ def delete_book(book_id):
         pass
 
     except (BotoCoreError, ClientError) as e:
+        print(e)
         abort(500)

@@ -38,6 +38,7 @@ def list_reviews(book_id):
 
         return jsonify({'reviews': reviews})
     except (BotoCoreError, ClientError) as e:
+        print(e)
         abort(500)
 
 
@@ -89,4 +90,5 @@ def create_review(book_id):
         }
         return jsonify(review), 201
     except (BotoCoreError, ClientError) as e:
+        print(e)
         abort(500)
