@@ -6,7 +6,7 @@
 /** 共通パラメータ */
 export const common = {
   projectName: 'book-review-api',
-  account: '123456789012',
+  account: '637423328334',
   region: 'ap-northeast-1',
   username: 'fuji',
 };
@@ -34,13 +34,13 @@ export const ecr = {
 export const application = {
   // セキュリティグループ設定
   securityGroup: {
-    albIngressPort: 443,
-    albAllowedSourceCidrs: ["210.175.11.128/26", "210.149.174.146/32", "210.149.174.147/32", "52.194.17.175/32"],
+    albIngressPort: 80,
+    albAllowedSourceCidrs: ["0.0.0.0/0", "210.175.11.128/26", "210.149.174.146/32", "210.149.174.147/32", "52.194.17.175/32"],
     ecsIngressPort: 5000,
   },
   // ALB設定
   alb: {
-    port: 443,
+    port: 80,
     healthCheck: {
       path: '/',
       intervalSeconds: 30,

@@ -104,7 +104,7 @@ export class Application extends Construct {
       assumedBy: new iam.ServicePrincipal('ecs-tasks.amazonaws.com'),
       managedPolicies: [
         iam.ManagedPolicy.fromAwsManagedPolicyName(
-          'AWSOpsWorksCloudWatchLogs'
+          'CloudWatchLogsFullAccess'
         ),
       ],
     });
@@ -133,6 +133,7 @@ export class Application extends Construct {
       }),
       environment: {
         TABLE_NAME: table.tableName,
+        AWS_DEFAULT_REGION: common.region
       },
     });
     containerDefinition.addPortMappings({
@@ -166,11 +167,11 @@ export class Application extends Construct {
     // ALB Listener
     const albListener = albForApp.addListener('AlbListener', {
       port: params.alb.port,
-      certificates: [
-          {
-            certificateArn: params.alb.certificationArn || '',
-          },
-      ],
+      // certificates: [
+      //     {
+      //       certificateArn: params.alb.certificationArn || '',
+      //     },
+      // ],
       defaultTargetGroups: [appTargetGroup],
       open: false,
     });
