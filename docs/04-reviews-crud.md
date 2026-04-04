@@ -1,0 +1,183 @@
+# 3. Reviews CRUD（40 分）
+
+> **SPEC.md を確認**: 以下のセクションに目を通してから実装に入りましょう。
+> - 「実装する API エンドポイント > Reviews」 — 2 つのエンドポイントの一覧
+> - 「リクエスト / レスポンス仕様」の Reviews 部分 — リクエスト・レスポンスのフォーマットと rating の範囲制約
+> - 「学習ポイントの設計意図 > パート3」 — `query` + `begins_with` と親リソース存在確認の意図
+
+このパートでは `routes/reviews.py` を開いて、2 つのエンドポイントを実装します。
+
+### Flask 解説 — ネストしたルート
+
+パート 2 では `/books` や `/books/<book_id>` というルートを定義しました。レビューは「書籍に属するリソース」なので、URL にも親子関係を反映させます。
+
+```python
+# パート 2 のルート（書籍）
+@books_bp.route('/books/<book_id>', ...)
+
+# パート 3 のルート（レビュー = 書籍の子リソース）
+@reviews_bp.route('/books/<book_id>/reviews', ...)
+```
+
+`/books/<book_id>/reviews` という URL は「book_id で指定された書籍のレビュー一覧」を意味します。Flask は `<book_id>` の部分を自動的に関数の引数として渡します。
+
+```python
+def list_reviews(book_id):   # ← URL の <book_id> がここに入る
+    # book_id を使って、この書籍に紐づくレビューを取得する
+```
+
+このように URL で親子関係を表現するのは、REST API の設計原則です。
+
+### このパートの新しい概念
+
+パート 2 では `scan` と `get_item` でデータを取得しましたが、このパートでは **`query`** という新しい操作を使います。
+
+| 操作 | 特徴 | 使いどころ |
+|---|---|---|
+| `scan` | テーブル全体を走査する | 条件なしで全件取得したい場合 |
+| `get_item` | PK + SK を完全一致で 1 件取得 | ID が分かっている 1 件を取得する場合 |
+| `query` | PK を指定し、SK で絞り込む | 同じ PK に属するアイテムをまとめて取得する場合 |
+
+レビューは書籍と同じ PK（`BOOK#<book_id>`）を持ち、SK が `REVIEW#...` で始まります。`query` を使えば、特定の書籍に紐づくレビューだけを効率的に取得できます。
+
+### 親リソースの存在確認パターン
+
+レビューは「書籍に対するレビュー」なので、**レビュー操作の前に必ず親リソース（書籍）の存在を確認**します。存在しない書籍に対してレビューを取得・投稿しようとした場合は `404` を返します。
+
+```
+リクエスト → 書籍の存在確認 → (存在しない → 404) → レビュー操作を実行
+```
+
+この「親リソースの存在を先にチェックする」パターンは、REST API の設計でよく使われます。
+
+---
+
+### 3-1. GET /api/v1/books/<book_id>/reviews — レビュー一覧取得
+
+`list_reviews()` 関数の TODO を実装します。
+
+**この関数がやること**: 指定された書籍の存在を確認し、その書籍に紐づくレビューを `query` で取得して返す。
+
+> 書籍の存在確認と `try-except` は提供済みです。TODO コメントの `pass` を以下のコードに置き換えてください。
+
+```python
+        response = table.query(
+            KeyConditionExpression=Key('PK').eq(f'BOOK#{book_id}') & Key('SK').begins_with('REVIEW#')
+        )
+        items = response.get('Items', [])
+
+        reviews = []
+        for item in items:
+            reviews.append({
+                'review_id': item['SK'].replace('REVIEW#', ''),
+                'book_id': book_id,
+                'reviewer': item['reviewer'],
+                'rating': int(item['rating']),
+                'comment': item['comment'],
+                'created_at': item['created_at'],
+            })
+
+        return jsonify({'reviews': reviews})
+```
+
+**コードの解説**:
+
+1. **書籍の存在確認（提供済み）** — `get_item` で書籍（SK=`METADATA`）が存在するか確認し、存在しなければ 404 を返します
+2. **`table.query(KeyConditionExpression=...)`** — ここが新しい操作。`query` は以下の 2 つの条件を組み合わせて検索する:
+   - `Key('PK').eq(f'BOOK#{book_id}')` — PK が指定した値と**一致する**アイテム
+   - `Key('SK').begins_with('REVIEW#')` — SK が `REVIEW#` で**始まる**アイテム
+   - `&` で 2 つの条件を AND 結合する
+3. **`int(item['rating'])`** — DynamoDB は数値を `Decimal` 型で返すため、`int()` で Python の整数型に変換する
+4. **`item['SK'].replace('REVIEW#', '')`** — SK から `REVIEW#` プレフィックスを除去して `review_id` を取り出す
+
+**`query` を使うメリット**:
+
+SPEC.md の具体例で考えてみましょう。テーブルに 4 件のアイテムがある場合:
+
+| PK | SK |
+|---|---|
+| `BOOK#aaa-111` | `METADATA` |
+| `BOOK#aaa-111` | `REVIEW#ccc-333` |
+| `BOOK#aaa-111` | `REVIEW#ddd-444` |
+| `BOOK#bbb-222` | `METADATA` |
+
+`query(PK='BOOK#aaa-111', SK begins_with 'REVIEW#')` は **2 件だけ**を返します（`REVIEW#ccc-333` と `REVIEW#ddd-444`）。`scan` で全 4 件を取得してフィルタするより効率的です。
+
+---
+
+### 3-2. POST /api/v1/books/<book_id>/reviews — レビュー投稿
+
+`create_review()` 関数の TODO を実装します。
+
+**この関数がやること**: 書籍の存在を確認し、バリデーション後にレビューを DynamoDB に保存する。
+
+> 書籍の存在確認、バリデーション、UUID/timestamp 生成は提供済みです。TODO コメントの `pass` を以下のコードに置き換えてください。
+
+```python
+        item = {
+            'PK': f'BOOK#{book_id}',
+            'SK': f'REVIEW#{review_id}',
+            'reviewer': data['reviewer'],
+            'rating': data['rating'],
+            'comment': data['comment'],
+            'created_at': created_at,
+        }
+        table.put_item(Item=item)
+
+        review = {
+            'review_id': review_id,
+            'book_id': book_id,
+            'reviewer': data['reviewer'],
+            'rating': data['rating'],
+            'comment': data['comment'],
+            'created_at': created_at,
+        }
+        return jsonify(review), 201
+```
+
+**コードの解説**:
+
+1. **書籍の存在確認（提供済み）** — レビュー投稿前に必ず親リソース（書籍）の存在を確認する
+2. **バリデーション（提供済み）** — 必須フィールドと rating 範囲のチェック。`create_book` で学んだパターンと同じ
+3. **PK と SK の設定** — PK は書籍と同じ `BOOK#<book_id>`。SK は `REVIEW#<review_id>` とすることで、同じ PK の下に書籍本体とレビューが共存する
+
+**書籍登録（POST /books）との違い**:
+- PK が新規 ID ではなく、**既存の書籍の PK を使う**
+- SK が `METADATA` ではなく `REVIEW#<review_id>`
+- バリデーションに `rating` の範囲チェックが追加
+
+---
+
+### 動作確認: Reviews エンドポイント
+
+```bash
+# 1. まず書籍を登録する（book_id を控える）
+curl -s -X POST http://localhost:5000/api/v1/books \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Clean Code", "author": "Robert C. Martin", "description": "読みやすいコードの書き方"}' \
+  | python -m json.tool
+
+# 2. レビューを投稿する（<book_id> を手順 1 の結果に置き換える）
+curl -s -X POST http://localhost:5000/api/v1/books/<book_id>/reviews \
+  -H "Content-Type: application/json" \
+  -d '{"reviewer": "Yohei", "rating": 5, "comment": "実務で即使える内容でした"}' \
+  | python -m json.tool
+
+# 3. もう 1 件レビューを投稿する
+curl -s -X POST http://localhost:5000/api/v1/books/<book_id>/reviews \
+  -H "Content-Type: application/json" \
+  -d '{"reviewer": "Tanaka", "rating": 4, "comment": "初心者にもおすすめ"}' \
+  | python -m json.tool
+
+# 4. レビュー一覧を取得する（2 件返ることを確認）
+curl -s http://localhost:5000/api/v1/books/<book_id>/reviews | python -m json.tool
+
+# 5. 存在しない書籍のレビューを取得する（404 が返ることを確認）
+curl -s http://localhost:5000/api/v1/books/nonexistent-id/reviews | python -m json.tool
+```
+
+全て正常に動作すれば、Reviews CRUD は完成です。
+
+---
+
+[← 2. Books CRUD](03-books-crud.md) | [次へ: 4. エラーハンドリング確認 →](05-error-handling.md)
