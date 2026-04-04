@@ -58,7 +58,32 @@ docker build -t book-review-api .
 
 ---
 
-### 5-2. ECR にログインする
+### 5-2. ローカルでコンテナの起動を確認する
+
+ECR に push する前に、ビルドしたイメージがローカルで正常に起動するか確認しましょう。
+
+```bash
+docker run --rm -p 5000:5000 book-review-api
+```
+
+Flask の起動ログが表示されれば OK です。別のターミナルからヘルスチェックを確認します:
+
+```bash
+curl -s http://localhost:5000/
+```
+
+`{"status":"ok"}` が返れば、コンテナは正常に動作しています。`Ctrl+C` でコンテナを停止してください。
+
+> **なぜローカルで確認するのか**: ECS にデプロイした後にコンテナが起動に失敗すると、CloudFormation がスタック全体を Rollback してしまいます。import エラーや環境変数の不足など、アプリケーションレベルの問題はローカルで事前に検出できます。
+
+**コマンドの解説**:
+- `docker run` — イメージからコンテナを起動する
+- `--rm` — コンテナ停止時に自動的に削除する
+- `-p 5000:5000` — ホストのポート 5000 をコンテナのポート 5000 に接続する
+
+---
+
+### 5-3. ECR にログインする
 
 ECR にイメージを push するには、まず認証が必要です。
 
@@ -78,7 +103,7 @@ aws ecr get-login-password --region ap-northeast-1 \
 
 ---
 
-### 5-3. Docker イメージにタグを付ける
+### 5-4. Docker イメージにタグを付ける
 
 ECR に push するには、イメージに ECR リポジトリの URL をタグとして付ける必要があります。
 
@@ -94,7 +119,7 @@ docker tag book-review-api:latest \
 
 ---
 
-### 5-4. ECR に push する
+### 5-5. ECR に push する
 
 ```bash
 docker push <アカウントID>.dkr.ecr.ap-northeast-1.amazonaws.com/book-review-api:latest
