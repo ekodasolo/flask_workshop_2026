@@ -7,26 +7,36 @@
 
 このパートでは `routes/reviews.py` を開いて、2 つのエンドポイントを実装します。
 
-### Flask 解説 — ネストしたルート
+### REST API 解説 — ネストしたリソースと URI 設計
 
-パート 2 では `/books` や `/books/<book_id>` というルートを定義しました。レビューは「書籍に属するリソース」なので、URL にも親子関係を反映させます。
+パート 2 では `/books` という URI で書籍リソースを操作しました。レビューは「書籍に属するリソース（サブリソース）」なので、REST API では URI にその親子関係を反映させます。
 
-```python
-# パート 2 のルート（書籍）
-@books_bp.route('/books/<book_id>', ...)
-
-# パート 3 のルート（レビュー = 書籍の子リソース）
-@reviews_bp.route('/books/<book_id>/reviews', ...)
+```
+書籍（親リソース）:       /books/<book_id>
+レビュー（子リソース）:   /books/<book_id>/reviews
 ```
 
-`/books/<book_id>/reviews` という URL は「book_id で指定された書籍のレビュー一覧」を意味します。Flask は `<book_id>` の部分を自動的に関数の引数として渡します。
+URI を見るだけで「`book_id` の書籍に属するレビュー」という関係が読み取れます。これが REST API の URI 設計の基本原則です。
+
+パート 2 の Books API と並べてみましょう:
+
+| API 操作 | HTTP メソッド + URI | リソースの関係 |
+|---|---|---|
+| ListBooks | `GET /books` | 書籍の一覧 |
+| CreateBook | `POST /books` | 書籍の作成 |
+| GetBook | `GET /books/<book_id>` | 特定の書籍 |
+| ListReviews | `GET /books/<book_id>/reviews` | 特定の書籍の**レビュー一覧** |
+| CreateReview | `POST /books/<book_id>/reviews` | 特定の書籍に**レビューを投稿** |
+
+URI が `/books/<book_id>/reviews` のようにネストすることで、「どの書籍のレビューか」が URI だけで表現されています。
+
+Flask ではこのネストした URI をそのままルート定義に書きます:
 
 ```python
+@reviews_bp.route('/books/<book_id>/reviews', methods=['GET'])
 def list_reviews(book_id):   # ← URL の <book_id> がここに入る
     # book_id を使って、この書籍に紐づくレビューを取得する
 ```
-
-このように URL で親子関係を表現するのは、REST API の設計原則です。
 
 ### このパートの新しい概念
 
@@ -177,6 +187,26 @@ curl -s http://localhost:5000/api/v1/books/nonexistent-id/reviews | python -m js
 ```
 
 全て正常に動作すれば、Reviews CRUD は完成です。
+
+### ここまでのまとめ — サブリソースの REST API 設計
+
+パート 2（Books）とパート 3（Reviews）を合わせて、REST API 全体の設計を振り返りましょう。
+
+| CRUD | API 操作 | HTTP メソッド + URI | Flask 関数 | DynamoDB 操作 |
+|---|---|---|---|---|
+| **R**ead（一覧） | ListBooks | `GET /books` | `list_books()` | `scan()` |
+| **C**reate | CreateBook | `POST /books` | `create_book()` | `put_item()` |
+| **R**ead（1件） | GetBook | `GET /books/<id>` | `get_book()` | `get_item()` |
+| **U**pdate | UpdateBook | `PUT /books/<id>` | `update_book()` | `update_item()` |
+| **D**elete | DeleteBook | `DELETE /books/<id>` | `delete_book()` | `delete_item()` |
+| **R**ead（一覧） | ListReviews | `GET /books/<id>/reviews` | `list_reviews()` | `query()` |
+| **C**reate | CreateReview | `POST /books/<id>/reviews` | `create_review()` | `put_item()` |
+
+REST API の設計原則が一貫していることに注目してください:
+
+- **URI がリソースの構造を表す** — `/books` は書籍、`/books/<id>/reviews` はその書籍のレビュー
+- **HTTP メソッドが操作を表す** — GET で取得、POST で作成
+- **同じ CRUD パターンが親子で繰り返される** — Books も Reviews も「一覧取得 + 作成」の組み合わせ
 
 ---
 
