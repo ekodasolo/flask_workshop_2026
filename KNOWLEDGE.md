@@ -85,3 +85,13 @@ cdk deploy BookReviewBase-fuji    # 1. ECR + DynamoDB
 docker build & push                # 2. イメージ push
 cdk deploy BookReviewApp-fuji     # 3. VPC + ALB + Fargate
 ```
+
+---
+
+### KN-007: ECS コンテナの環境変数は TaskDefinition が正
+
+ECS（Fargate）でコンテナを実行する場合、コンテナに設定される環境変数は **TaskDefinition に定義されたものだけ** が反映される。Dockerfile の `ENV` で指定した値は、ローカルでの `docker run` 時には有効だが、ECS では無視される。
+
+- Dockerfile の `ENV` はローカルテスト用のフォールバックとして有用
+- 本番で必要な環境変数（`TABLE_NAME`, `AWS_DEFAULT_REGION` など）は CDK の TaskDefinition 側で必ず設定する
+- boto3 は `AWS_DEFAULT_REGION` が未設定だとリージョンを特定できずエラーになるため、Dockerfile と TaskDefinition の両方で指定しておくと安全

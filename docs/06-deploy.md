@@ -30,11 +30,16 @@ COPY requirements.txt .        # 依存パッケージ定義をコピー
 RUN pip install --no-cache-dir -r requirements.txt  # パッケージをインストール
 COPY . .                       # アプリケーションコードを全てコピー
 ENV FLASK_ENV=production       # 環境変数を設定
+ENV AWS_DEFAULT_REGION=ap-northeast-1  # boto3 が使う AWS リージョン
 EXPOSE 5000                    # コンテナがポート 5000 を使うことを宣言
 CMD ["python", "app.py"]       # コンテナ起動時に Flask アプリを実行
 ```
 
 Docker イメージは「アプリと実行環境をまとめたパッケージ」です。このイメージさえあれば、どこでも同じ環境でアプリを動かせます。
+
+> **補足: ECS での環境変数について**
+>
+> AWS ECS（Fargate）でコンテナを実行する場合、コンテナに設定される環境変数は **TaskDefinition に定義されたものだけ** が反映されます。Dockerfile の `ENV` で指定した値は、ローカルで `docker run` する場合には有効ですが、ECS では TaskDefinition 側の設定で上書き・管理されます。今回は CDK の TaskDefinition で `TABLE_NAME` と `AWS_DEFAULT_REGION` を設定しています。
 
 ---
 
