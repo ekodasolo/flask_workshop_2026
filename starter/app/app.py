@@ -19,6 +19,12 @@ CORS(app)
 #    - url_prefix には '/api/v1' を指定する
 
 
+# ALB ヘルスチェック用エンドポイント
+@app.route('/')
+def health_check():
+    return jsonify({'status': 'ok'}), 200
+
+
 # 404 エラーハンドラー
 @app.errorhandler(404)
 def not_found(error):

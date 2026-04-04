@@ -17,6 +17,12 @@ app.register_blueprint(books_bp, url_prefix='/api/v1')
 app.register_blueprint(reviews_bp, url_prefix='/api/v1')
 
 
+# ALB ヘルスチェック用エンドポイント
+@app.route('/')
+def health_check():
+    return jsonify({'status': 'ok'}), 200
+
+
 # 404 エラーハンドラー
 @app.errorhandler(404)
 def not_found(error):
