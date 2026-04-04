@@ -105,24 +105,33 @@ aws ecr get-login-password --region ap-northeast-1 \
 
 ### 5-4. Docker イメージにタグを付ける
 
-ECR に push するには、イメージに ECR リポジトリの URL をタグとして付ける必要があります。
+ECR に push するには、イメージに ECR リポジトリの URL をタグとして付ける必要があります。タグには `<ユーザー名>_<時刻>` の形式を使います。
 
 ```bash
 docker tag book-review-api:latest \
-  <アカウントID>.dkr.ecr.ap-northeast-1.amazonaws.com/book-review-api:latest
+  <アカウントID>.dkr.ecr.ap-northeast-1.amazonaws.com/book-review-api:<ユーザー名>_<hhmm>
+```
+
+例えば、ユーザー名が `fuji` で現在 15:30 なら:
+
+```bash
+docker tag book-review-api:latest \
+  <アカウントID>.dkr.ecr.ap-northeast-1.amazonaws.com/book-review-api:fuji_1530
 ```
 
 **コマンドの解説**:
 - `docker tag <元の名前> <新しい名前>` — イメージに別名を付ける
 - `<アカウントID>.dkr.ecr.ap-northeast-1.amazonaws.com/book-review-api` — ECR リポジトリのフル URL
-- `:latest` — バージョンタグ。`latest` は「最新」という意味の慣例的なタグ名
+- `:<ユーザー名>_<hhmm>` — イメージタグ。誰がいつビルドしたかを識別できる
+
+> **なぜ `latest` ではなくユーザー名 + 時刻を使うのか**: ECS で問題が起きたとき、実行中のタスクがどのイメージから起動されたかを特定する必要があります。`latest` だけでは全員のイメージが同じタグになり、区別がつきません。再ビルドして push し直した場合も、前のタグが ECR に残るので履歴を追えます。
 
 ---
 
 ### 5-5. ECR に push する
 
 ```bash
-docker push <アカウントID>.dkr.ecr.ap-northeast-1.amazonaws.com/book-review-api:latest
+docker push <アカウントID>.dkr.ecr.ap-northeast-1.amazonaws.com/book-review-api:<ユーザー名>_<hhmm>
 ```
 
 イメージのレイヤーが順番にアップロードされます。全てのレイヤーが `Pushed` になれば完了です。
