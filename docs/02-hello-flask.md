@@ -56,7 +56,7 @@ python app.py
 
 ```bash
 # 存在しないパスにアクセスして 404 が返ることを確認する
-curl -s http://localhost:5000/api/v1/books | python -m json.tool
+curl -v http://localhost:5000/api/v1/books
 ```
 
 まだ `books.py` の中身を実装していないので、空のレスポンスまたはエラーが返りますが、Flask が起動していれば OK です。

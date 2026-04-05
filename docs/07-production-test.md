@@ -23,39 +23,39 @@
 手元で API を直接テストしたい場合に使えるコマンド集です。`<BASE_URL>` は `http://localhost:5000` または ALB の DNS 名に置き換えてください。
 
 ```bash
+BASE_URL=""         # http://localhost:5000 または ALB の DNS 名
+BOOK_ID=""          # 書籍登録時のレスポンスに含まれる book_id
+
 # ---------- Books ----------
 
 # 書籍一覧
-curl -s <BASE_URL>/api/v1/books | python -m json.tool
+curl -v ${BASE_URL}/api/v1/books
 
 # 書籍登録
-curl -s -X POST <BASE_URL>/api/v1/books \
+curl -v -X POST ${BASE_URL}/api/v1/books \
   -H "Content-Type: application/json" \
-  -d '{"title": "Clean Code", "author": "Robert C. Martin", "description": "読みやすいコードの書き方"}' \
-  | python -m json.tool
+  -d '{"title": "Clean Code", "author": "Robert C. Martin", "description": "読みやすいコードの書き方"}'
 
 # 書籍詳細
-curl -s <BASE_URL>/api/v1/books/<book_id> | python -m json.tool
+curl -v ${BASE_URL}/api/v1/books/${BOOK_ID}
 
 # 書籍更新
-curl -s -X PUT <BASE_URL>/api/v1/books/<book_id> \
+curl -v -X PUT ${BASE_URL}/api/v1/books/${BOOK_ID} \
   -H "Content-Type: application/json" \
-  -d '{"description": "コードの品質を高めるベストプラクティス集"}' \
-  | python -m json.tool
+  -d '{"description": "コードの品質を高めるベストプラクティス集"}'
 
 # 書籍削除
-curl -s -X DELETE <BASE_URL>/api/v1/books/<book_id> | python -m json.tool
+curl -v -X DELETE ${BASE_URL}/api/v1/books/${BOOK_ID}
 
 # ---------- Reviews ----------
 
 # レビュー一覧
-curl -s <BASE_URL>/api/v1/books/<book_id>/reviews | python -m json.tool
+curl -v ${BASE_URL}/api/v1/books/${BOOK_ID}/reviews
 
 # レビュー投稿
-curl -s -X POST <BASE_URL>/api/v1/books/<book_id>/reviews \
+curl -v -X POST ${BASE_URL}/api/v1/books/${BOOK_ID}/reviews \
   -H "Content-Type: application/json" \
-  -d '{"reviewer": "Yohei", "rating": 5, "comment": "実務で即使える内容でした"}' \
-  | python -m json.tool
+  -d '{"reviewer": "Yohei", "rating": 5, "comment": "実務で即使える内容でした"}'
 ```
 
 ---

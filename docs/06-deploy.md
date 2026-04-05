@@ -69,7 +69,7 @@ docker container run --rm -p 5000:5000 book-review-api
 Flask の起動ログが表示されれば OK です。別のターミナルからヘルスチェックを確認します:
 
 ```bash
-curl -s http://localhost:5000/
+curl -v http://localhost:5000/
 ```
 
 `{"status":"ok"}` が返れば、コンテナは正常に動作しています。`Ctrl+C` でコンテナを停止してください。
