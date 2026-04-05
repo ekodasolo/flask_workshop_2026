@@ -109,19 +109,21 @@ ECR に push するには、イメージに ECR リポジトリの URL をタグ
 
 ```bash
 docker image tag book-review-api:latest \
-  <アカウントID>.dkr.ecr.ap-northeast-1.amazonaws.com/book-review-api:<ユーザー名>_<hhmm>
+  <アカウントID>.dkr.ecr.ap-northeast-1.amazonaws.com/<ECRリポジトリ名>:<ユーザー名>_<hhmm>
 ```
 
-例えば、ユーザー名が `fuji` で現在 15:30 なら:
+`<ECRリポジトリ名>` は講師から案内があります。CDK で作成されたリポジトリ名は `book-review-api-<環境名>-<ユーザー名>-repo` の形式です（例: `book-review-api-workshop-fuji-repo`）。
+
+例えば、ユーザー名が `fuji`、環境名が `workshop`、現在 15:30 なら:
 
 ```bash
 docker image tag book-review-api:latest \
-  <アカウントID>.dkr.ecr.ap-northeast-1.amazonaws.com/book-review-api:fuji_1530
+  <アカウントID>.dkr.ecr.ap-northeast-1.amazonaws.com/book-review-api-workshop-fuji-repo:fuji_1530
 ```
 
 **コマンドの解説**:
 - `docker image tag <元の名前> <新しい名前>` — イメージに別名を付ける
-- `<アカウントID>.dkr.ecr.ap-northeast-1.amazonaws.com/book-review-api` — ECR リポジトリのフル URL
+- `<アカウントID>.dkr.ecr.ap-northeast-1.amazonaws.com/<ECRリポジトリ名>` — ECR リポジトリのフル URL
 - `:<ユーザー名>_<hhmm>` — イメージタグ。誰がいつビルドしたかを識別できる
 
 > **なぜ `latest` ではなくユーザー名 + 時刻を使うのか**: ECS で問題が起きたとき、実行中のタスクがどのイメージから起動されたかを特定する必要があります。`latest` だけでは全員のイメージが同じタグになり、区別がつきません。再ビルドして push し直した場合も、前のタグが ECR に残るので履歴を追えます。
@@ -131,7 +133,7 @@ docker image tag book-review-api:latest \
 ### 5-5. ECR に push する
 
 ```bash
-docker image push <アカウントID>.dkr.ecr.ap-northeast-1.amazonaws.com/book-review-api:<ユーザー名>_<hhmm>
+docker image push <アカウントID>.dkr.ecr.ap-northeast-1.amazonaws.com/<ECRリポジトリ名>:<ユーザー名>_<hhmm>
 ```
 
 イメージのレイヤーが順番にアップロードされます。全てのレイヤーが `Pushed` になれば完了です。

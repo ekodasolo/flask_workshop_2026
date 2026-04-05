@@ -3,9 +3,10 @@ Flask + DynamoDB REST API ハンズオン コマンドスニペット
 ============================================================
 
 書き換えが必要な箇所:
-  <book_id>     ... 書籍登録時のレスポンスに含まれる book_id を貼り付ける
-  <review_id>   ... レビュー投稿時のレスポンスに含まれる review_id を貼り付ける
-  <アカウントID>       ... 講師から案内される 12 桁の AWS アカウント ID
+  <book_id>        ... 書籍登録時のレスポンスに含まれる book_id を貼り付ける
+  <review_id>      ... レビュー投稿時のレスポンスに含まれる review_id を貼り付ける
+  <アカウントID>          ... 講師から案内される 12 桁の AWS アカウント ID
+  <ECRリポジトリ名>       ... 講師から案内される ECR リポジトリ名（例: book-review-api-workshop-fuji-repo）
   <user_name>_<hhmm>  ... ユーザー名_時刻（例: fuji_1530）
 
 
@@ -137,9 +138,9 @@ curl -s http://localhost:5000/
 aws ecr get-login-password --region ap-northeast-1 \
   | docker login --username AWS --password-stdin <アカウントID>.dkr.ecr.ap-northeast-1.amazonaws.com
 
-# 5-4. Docker イメージにタグを付ける（<アカウントID> と <user_name>_<hhmm> を書き換える）
+# 5-4. Docker イメージにタグを付ける（<アカウントID>、<ECRリポジトリ名>、<user_name>_<hhmm> を書き換える）
 docker image tag book-review-api:latest \
-  <アカウントID>.dkr.ecr.ap-northeast-1.amazonaws.com/book-review-api:<user_name>_<hhmm>
+  <アカウントID>.dkr.ecr.ap-northeast-1.amazonaws.com/<ECRリポジトリ名>:<user_name>_<hhmm>
 
-# 5-5. ECR に push（<アカウントID> と <user_name>_<hhmm> を書き換える）
-docker image push <アカウントID>.dkr.ecr.ap-northeast-1.amazonaws.com/book-review-api:<user_name>_<hhmm>
+# 5-5. ECR に push（<アカウントID>、<ECRリポジトリ名>、<user_name>_<hhmm> を書き換える）
+docker image push <アカウントID>.dkr.ecr.ap-northeast-1.amazonaws.com/<ECRリポジトリ名>:<user_name>_<hhmm>
