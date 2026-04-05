@@ -127,10 +127,10 @@ curl -s http://localhost:5000/api/v1/books/nonexistent-id/reviews | python -m js
 ------------------------------------------------------------
 
 # 5-1. Docker イメージをビルド
-docker build -t book-review-api .
+docker image build -t book-review-api .
 
 # 5-2. ローカルでコンテナの起動を確認
-docker run --rm -p 5000:5000 book-review-api
+docker container run --rm -p 5000:5000 book-review-api
 curl -s http://localhost:5000/
 
 # 5-3. ECR にログイン（<アカウントID> を書き換える）
@@ -138,8 +138,8 @@ aws ecr get-login-password --region ap-northeast-1 \
   | docker login --username AWS --password-stdin <アカウントID>.dkr.ecr.ap-northeast-1.amazonaws.com
 
 # 5-4. Docker イメージにタグを付ける（<アカウントID> と <user_name>_<hhmm> を書き換える）
-docker tag book-review-api:latest \
+docker image tag book-review-api:latest \
   <アカウントID>.dkr.ecr.ap-northeast-1.amazonaws.com/book-review-api:<user_name>_<hhmm>
 
 # 5-5. ECR に push（<アカウントID> と <user_name>_<hhmm> を書き換える）
-docker push <アカウントID>.dkr.ecr.ap-northeast-1.amazonaws.com/book-review-api:<user_name>_<hhmm>
+docker image push <アカウントID>.dkr.ecr.ap-northeast-1.amazonaws.com/book-review-api:<user_name>_<hhmm>

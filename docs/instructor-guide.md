@@ -169,9 +169,9 @@
 **詰まりポイントと対処法**:
 | 症状 | 原因 | 対処 |
 |---|---|---|
-| `docker build` が遅い | ネットワーク帯域 | 待つ（初回は数分かかる） |
+| `docker image build` が遅い | ネットワーク帯域 | 待つ（初回は数分かかる） |
 | ECR ログイン失敗 | アカウント ID の間違い | 正しいアカウント ID を再案内 |
-| `docker push` 失敗 | タグ付けミス | `docker tag` コマンドを再確認 |
+| `docker image push` 失敗 | タグ付けミス | `docker image tag` コマンドを再確認 |
 | `denied: Your authorization token has expired` | トークン期限切れ | 再度 `aws ecr get-login-password` |
 
 **全員の push 完了を待つ**:
