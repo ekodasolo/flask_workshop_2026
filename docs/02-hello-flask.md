@@ -56,8 +56,39 @@ python app.py
 
 ```bash
 # 存在しないパスにアクセスして 404 が返ることを確認する
-curl -s http://localhost:5000/api/v1/books | python -m json.tool
+curl -v http://localhost:5000/api/v1/books
 ```
+
+**curl `-v` オプションの出力の読み方**:
+
+`-v`（verbose）を付けると、HTTP のリクエストとレスポンスの詳細が表示されます。REST API では「何を送って、何が返ってきたか」を確認することが重要なので、このハンズオンでは全て `-v` を使います。
+
+出力サンプル:
+
+```
+*   Trying 127.0.0.1:5000...
+* Connected to localhost (127.0.0.1) port 5000    ← サーバーへの接続情報
+> GET /api/v1/books HTTP/1.1                       ← リクエスト行（メソッド + URI + HTTPバージョン）
+> Host: localhost:5000                             ← リクエストヘッダー
+> User-Agent: curl/8.x.x                          ←
+> Accept: */*                                      ←
+>                                                  ← リクエスト終了（空行）
+< HTTP/1.1 200 OK                                  ← ステータス行（HTTPバージョン + ステータスコード）
+< Content-Type: application/json                   ← レスポンスヘッダー
+< Content-Length: 14                               ←
+<                                                  ← レスポンスヘッダー終了（空行）
+{"books": []}                                      ← レスポンスボディ（JSON）
+```
+
+読み方のポイント:
+- **`>`（リクエスト）** — 自分がサーバーに送った内容。メソッド（GET / POST / PUT / DELETE）と URI を確認する
+- **`<`（レスポンス）** — サーバーから返ってきた内容。ステータスコード（200, 201, 400, 404 など）を確認する
+- **最後の行** — レスポンスボディ。API が返した JSON データ
+
+> **補足**: 出力が冗長に感じる場合は `-v` の代わりに `-s`（silent）を使うと、レスポンスボディだけが表示されます。
+> ```bash
+> curl -s http://localhost:5000/api/v1/books
+> ```
 
 まだ `books.py` の中身を実装していないので、空のレスポンスまたはエラーが返りますが、Flask が起動していれば OK です。
 

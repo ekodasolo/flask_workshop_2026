@@ -175,21 +175,19 @@ python app.py
 
 ```bash
 # 書籍を登録する
-curl -s -X POST http://localhost:5000/api/v1/books \
+curl -v -X POST http://localhost:5000/api/v1/books \
   -H "Content-Type: application/json" \
-  -d '{"title": "Clean Code", "author": "Robert C. Martin", "description": "読みやすいコードの書き方"}' \
-  | python -m json.tool
+  -d '{"title": "Clean Code", "author": "Robert C. Martin", "description": "読みやすいコードの書き方"}'
 
 # 書籍一覧を取得する
-curl -s http://localhost:5000/api/v1/books | python -m json.tool
+curl -v http://localhost:5000/api/v1/books
 ```
 
 **curl コマンドの解説**:
-- `-s` — サイレントモード。プログレスバーを非表示にする
+- `-v` — 詳細表示モード。HTTP リクエストとレスポンスのヘッダー・ステータスコードを表示する
 - `-X POST` — HTTP メソッドを POST に指定する（デフォルトは GET）
 - `-H "Content-Type: application/json"` — リクエストヘッダーで「JSON を送ります」と宣言する
 - `-d '{...}'` — リクエストボディに JSON を設定する
-- `| python -m json.tool` — レスポンスの JSON を整形表示する
 
 登録した書籍が一覧に表示されれば成功です。
 
@@ -336,27 +334,25 @@ ExpressionAttributeNames:  {"#description": "description"}
 
 ```bash
 # 1. 書籍を登録する
-curl -s -X POST http://localhost:5000/api/v1/books \
+curl -v -X POST http://localhost:5000/api/v1/books \
   -H "Content-Type: application/json" \
-  -d '{"title": "Clean Code", "author": "Robert C. Martin", "description": "読みやすいコードの書き方"}' \
-  | python -m json.tool
+  -d '{"title": "Clean Code", "author": "Robert C. Martin", "description": "読みやすいコードの書き方"}'
 
 # → レスポンスの book_id を控えておく（例: abc123...）
 
 # 2. 書籍詳細を取得する
-curl -s http://localhost:5000/api/v1/books/<book_id> | python -m json.tool
+curl -v http://localhost:5000/api/v1/books/<book_id>
 
 # 3. 書籍を更新する（description だけ変更）
-curl -s -X PUT http://localhost:5000/api/v1/books/<book_id> \
+curl -v -X PUT http://localhost:5000/api/v1/books/<book_id> \
   -H "Content-Type: application/json" \
-  -d '{"description": "コードの品質を高めるベストプラクティス集"}' \
-  | python -m json.tool
+  -d '{"description": "コードの品質を高めるベストプラクティス集"}'
 
 # 4. 書籍を削除する
-curl -s -X DELETE http://localhost:5000/api/v1/books/<book_id> | python -m json.tool
+curl -v -X DELETE http://localhost:5000/api/v1/books/<book_id>
 
 # 5. 一覧から消えていることを確認する
-curl -s http://localhost:5000/api/v1/books | python -m json.tool
+curl -v http://localhost:5000/api/v1/books
 ```
 
 全て正常に動作すれば、Books CRUD は完成です。

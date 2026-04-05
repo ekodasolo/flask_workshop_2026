@@ -2,18 +2,17 @@
 Flask + DynamoDB REST API ハンズオン コマンドスニペット
 ============================================================
 
-書き換えが必要な箇所:
-  <book_id>     ... 書籍登録時のレスポンスに含まれる book_id を貼り付ける
-  <review_id>   ... レビュー投稿時のレスポンスに含まれる review_id を貼り付ける
-  <アカウントID>       ... 講師から案内される 12 桁の AWS アカウント ID
-  <user_name>_<hhmm>  ... ユーザー名_時刻（例: fuji_1530）
+各チャプターの先頭にあるシェル変数を設定してから
+コマンドを実行してください。
 
 
 ------------------------------------------------------------
 0. 環境構築
 ------------------------------------------------------------
 
-cd ~/projects/flask_workshop/<user_name>
+USER_NAME=""        # 自分のユーザー名（例: fuji）
+
+cd ~/projects/flask_workshop/${USER_NAME}
 
 git clone https://github.com/ekodasolo/flask_workshop_2026
 
@@ -36,110 +35,112 @@ pip install -r requirements.txt
 
 python app.py
 
-curl -s http://localhost:5000/api/v1/books | python -m json.tool
+curl -v http://localhost:5000/api/v1/books
 
 
 ------------------------------------------------------------
 2. Books CRUD
 ------------------------------------------------------------
 
+BOOK_ID=""          # 書籍登録時のレスポンスに含まれる book_id を貼り付ける
+
 # Flask 起動（別ターミナルでコマンドを実行する場合）
 python app.py
 
 # 2-1. 書籍一覧取得
-curl -s http://localhost:5000/api/v1/books | python -m json.tool
+curl -v http://localhost:5000/api/v1/books
 
 # 2-2. 書籍登録
-curl -s -X POST http://localhost:5000/api/v1/books \
+curl -v -X POST http://localhost:5000/api/v1/books \
   -H "Content-Type: application/json" \
-  -d '{"title": "Clean Code", "author": "Robert C. Martin", "description": "読みやすいコードの書き方"}' \
-  | python -m json.tool
+  -d '{"title": "Clean Code", "author": "Robert C. Martin", "description": "読みやすいコードの書き方"}'
 
-# 2-3. 書籍詳細取得（<book_id> を書き換える）
-curl -s http://localhost:5000/api/v1/books/<book_id> | python -m json.tool
+# 2-3. 書籍詳細取得
+curl -v http://localhost:5000/api/v1/books/${BOOK_ID}
 
-# 2-4. 書籍更新（<book_id> を書き換える）
-curl -s -X PUT http://localhost:5000/api/v1/books/<book_id> \
+# 2-4. 書籍更新
+curl -v -X PUT http://localhost:5000/api/v1/books/${BOOK_ID} \
   -H "Content-Type: application/json" \
-  -d '{"description": "コードの品質を高めるベストプラクティス集"}' \
-  | python -m json.tool
+  -d '{"description": "コードの品質を高めるベストプラクティス集"}'
 
-# 2-5. 書籍削除（<book_id> を書き換える）
-curl -s -X DELETE http://localhost:5000/api/v1/books/<book_id> | python -m json.tool
+# 2-5. 書籍削除
+curl -v -X DELETE http://localhost:5000/api/v1/books/${BOOK_ID}
 
 
 ------------------------------------------------------------
 3. Reviews CRUD
 ------------------------------------------------------------
 
+BOOK_ID=""          # レビュー対象の書籍の book_id を貼り付ける
+
 # 先に書籍を 1 件登録しておく
-curl -s -X POST http://localhost:5000/api/v1/books \
+curl -v -X POST http://localhost:5000/api/v1/books \
   -H "Content-Type: application/json" \
-  -d '{"title": "リーダブルコード", "author": "Dustin Boswell", "description": "より良いコードを書くためのシンプルで実践的なテクニック"}' \
-  | python -m json.tool
+  -d '{"title": "リーダブルコード", "author": "Dustin Boswell", "description": "より良いコードを書くためのシンプルで実践的なテクニック"}'
 
-# 3-1. レビュー投稿（<book_id> を書き換える）
-curl -s -X POST http://localhost:5000/api/v1/books/<book_id>/reviews \
+# 3-1. レビュー投稿
+curl -v -X POST http://localhost:5000/api/v1/books/${BOOK_ID}/reviews \
   -H "Content-Type: application/json" \
-  -d '{"reviewer": "Yohei", "rating": 5, "comment": "実務で即使える内容でした"}' \
-  | python -m json.tool
+  -d '{"reviewer": "Yohei", "rating": 5, "comment": "実務で即使える内容でした"}'
 
-# 3-2. レビュー一覧取得（<book_id> を書き換える）
-curl -s http://localhost:5000/api/v1/books/<book_id>/reviews | python -m json.tool
+# 3-2. レビュー一覧取得
+curl -v http://localhost:5000/api/v1/books/${BOOK_ID}/reviews
 
 
 ------------------------------------------------------------
 4. エラーハンドリング確認
 ------------------------------------------------------------
 
+BOOK_ID=""          # rating 範囲外テスト用の book_id を貼り付ける
+
 # 400: 必須フィールドが足りない
-curl -s -X POST http://localhost:5000/api/v1/books \
+curl -v -X POST http://localhost:5000/api/v1/books \
   -H "Content-Type: application/json" \
-  -d '{"title": "Clean Code"}' \
-  | python -m json.tool
+  -d '{"title": "Clean Code"}'
 
 # 400: リクエストボディが空
-curl -s -X POST http://localhost:5000/api/v1/books \
-  -H "Content-Type: application/json" \
-  | python -m json.tool
+curl -v -X POST http://localhost:5000/api/v1/books \
+  -H "Content-Type: application/json"
 
-# 400: rating が範囲外（<book_id> を書き換える）
-curl -s -X POST http://localhost:5000/api/v1/books/<book_id>/reviews \
+# 400: rating が範囲外
+curl -v -X POST http://localhost:5000/api/v1/books/${BOOK_ID}/reviews \
   -H "Content-Type: application/json" \
-  -d '{"reviewer": "Yohei", "rating": 10, "comment": "テスト"}' \
-  | python -m json.tool
+  -d '{"reviewer": "Yohei", "rating": 10, "comment": "テスト"}'
 
 # 404: 存在しない書籍を取得
-curl -s http://localhost:5000/api/v1/books/nonexistent-id | python -m json.tool
+curl -v http://localhost:5000/api/v1/books/nonexistent-id
 
 # 404: 存在しない書籍を更新
-curl -s -X PUT http://localhost:5000/api/v1/books/nonexistent-id \
+curl -v -X PUT http://localhost:5000/api/v1/books/nonexistent-id \
   -H "Content-Type: application/json" \
-  -d '{"title": "New Title"}' \
-  | python -m json.tool
+  -d '{"title": "New Title"}'
 
 # 404: 存在しない書籍のレビューを取得
-curl -s http://localhost:5000/api/v1/books/nonexistent-id/reviews | python -m json.tool
+curl -v http://localhost:5000/api/v1/books/nonexistent-id/reviews
 
 
 ------------------------------------------------------------
 5. デプロイ
 ------------------------------------------------------------
 
+ACCOUNT_ID=""       # 講師から案内される 12 桁の AWS アカウント ID
+ECR_REPO=""         # 講師から案内される ECR リポジトリ名（例: book-review-api-workshop-fuji-repo）
+IMAGE_TAG=""        # ユーザー名_時刻（例: fuji_1530）
+
 # 5-1. Docker イメージをビルド
-docker build -t book-review-api .
+docker image build -t book-review-api .
 
 # 5-2. ローカルでコンテナの起動を確認
-docker run --rm -p 5000:5000 book-review-api
-curl -s http://localhost:5000/
+docker container run --rm -p 5000:5000 book-review-api
+curl -v http://localhost:5000/
 
-# 5-3. ECR にログイン（<アカウントID> を書き換える）
+# 5-3. ECR にログイン
 aws ecr get-login-password --region ap-northeast-1 \
-  | docker login --username AWS --password-stdin <アカウントID>.dkr.ecr.ap-northeast-1.amazonaws.com
+  | docker login --username AWS --password-stdin ${ACCOUNT_ID}.dkr.ecr.ap-northeast-1.amazonaws.com
 
-# 5-4. Docker イメージにタグを付ける（<アカウントID> と <user_name>_<hhmm> を書き換える）
-docker tag book-review-api:latest \
-  <アカウントID>.dkr.ecr.ap-northeast-1.amazonaws.com/book-review-api:<user_name>_<hhmm>
+# 5-4. Docker イメージにタグを付ける
+docker image tag book-review-api:latest \
+  ${ACCOUNT_ID}.dkr.ecr.ap-northeast-1.amazonaws.com/${ECR_REPO}:${IMAGE_TAG}
 
-# 5-5. ECR に push（<アカウントID> と <user_name>_<hhmm> を書き換える）
-docker push <アカウントID>.dkr.ecr.ap-northeast-1.amazonaws.com/book-review-api:<user_name>_<hhmm>
+# 5-5. ECR に push
+docker image push ${ACCOUNT_ID}.dkr.ecr.ap-northeast-1.amazonaws.com/${ECR_REPO}:${IMAGE_TAG}
