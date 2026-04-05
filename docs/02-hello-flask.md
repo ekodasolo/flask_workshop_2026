@@ -59,6 +59,17 @@ python app.py
 curl -v http://localhost:5000/api/v1/books
 ```
 
+**curl のオプション解説**:
+- `-v`（verbose）— HTTP リクエストとレスポンスの詳細（メソッド、ヘッダー、ステータスコードなど）を表示する。`>` がリクエスト、`<` がレスポンスを示す
+- 出力例: `> GET /api/v1/books HTTP/1.1` → `< HTTP/1.1 404 NOT FOUND`
+
+REST API の学習では、HTTP のやり取りを目で見ることが大事なので、このハンズオンでは全て `-v` を使います。
+
+> **補足**: 出力が冗長に感じる場合は `-v` の代わりに `-s`（silent）を使うと、レスポンスボディだけが表示されます。
+> ```bash
+> curl -s http://localhost:5000/api/v1/books
+> ```
+
 まだ `books.py` の中身を実装していないので、空のレスポンスまたはエラーが返りますが、Flask が起動していれば OK です。
 
 確認が終わったら `Ctrl+C` で Flask を停止してください。
