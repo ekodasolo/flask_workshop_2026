@@ -3,10 +3,15 @@ frontend:
   phases:
     preBuild:
       commands:
+        - echo "=== preBuild phase ==="
+        - pwd
         - cd frontend
+        - pwd
         - npm ci
     build:
       commands:
+        - echo "=== build phase ==="
+        - pwd
         - npm run build
   artifacts:
     baseDirectory: frontend/dist
