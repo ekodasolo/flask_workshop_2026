@@ -141,3 +141,39 @@ docker build -t book-review-api:fuji_1430 .
 - **いつ**: 時刻で特定できる
 - ワークショップのように同日中に複数人が push する場面で、どのイメージがデプロイされているか一目でわかる
 - `latest` も併用して push すれば、タスク定義の変更なしに最新イメージを使うこともできる
+
+---
+
+### KN-011: Amplify でサブディレクトリのアプリをビルドする
+
+リポジトリルート直下ではなくサブディレクトリ（例: `frontend/`）にアプリがある場合、Amplify のビルド設定で対応が必要。
+
+**ポイント**:
+- Amplify のビルド環境はリポジトリルートから開始される
+- Root directory の設定が Amplify コンソールに見当たらない場合は、`amplify.yml` の `preBuild` で `cd` する
+- **フェーズ間（preBuild → build）でカレントディレクトリは保持される**。`preBuild` で `cd frontend` すれば `build` ではそのまま `frontend/` にいる
+- `artifacts.baseDirectory` はリポジトリルートからの相対パス（例: `frontend/dist`）
+
+```yaml
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - cd frontend
+        - npm ci
+    build:
+      commands:
+        - npm run build
+  artifacts:
+    baseDirectory: frontend/dist
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - frontend/node_modules/**/*
+```
+
+**注意**: Monorepo のチェックを有効にすると `amplify.yml` に `applications` キーが必要になる。単一アプリのサブディレクトリ構成では Monorepo を有効にしない。
+
+- **関連 ISSUE**: ISSUE-004, ISSUE-005

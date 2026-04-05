@@ -46,3 +46,25 @@
 - **原因**: `??` は `null` / `undefined` のみをフォールバック対象とする。空文字列 `''` は falsy だが nullish ではない
 - **対処法**: プレースホルダー値 `'123456789012'` を設定して回避。代替案として `||` 演算子を使えば空文字列もフォールバック対象になる
 - **関連ナレッジ**: KNOWLEDGE.md KN-002
+
+---
+
+### ISSUE-004: Amplify ビルドで「Monorepo spec provided without applications key」エラー
+
+- **発生日**: 2026-04-05
+- **状況**: Amplify でフロントエンドをホスティングするためアプリを作成し、初回ビルドを実行
+- **エラー内容**: `CustomerError: Monorepo spec provided without "applications" key`
+- **原因**: Amplify アプリ作成時に Monorepo のチェックを誤って有効にしていた。Monorepo 設定では `amplify.yml` に `applications` キーが必要になる
+- **対処法**: アプリを再作成し、Monorepo のチェックを外した
+- **関連ナレッジ**: KNOWLEDGE.md KN-011
+
+---
+
+### ISSUE-005: Amplify ビルドで `npm ci` が package-lock.json を見つけられない
+
+- **発生日**: 2026-04-05
+- **状況**: Monorepo 問題を解消後、ビルドを再実行
+- **エラー内容**: `npm error The npm ci command can only install with an existing package-lock.json`
+- **原因**: Amplify のビルド環境はリポジトリルートから開始される。`package-lock.json` は `frontend/` 内にあるため、ルートでの `npm ci` が失敗した。Root directory の設定箇所が Amplify コンソールに見当たらなかった
+- **対処法**: `amplify.yml` の `preBuild` で `cd frontend` してからコマンドを実行する構成に変更
+- **関連ナレッジ**: KNOWLEDGE.md KN-011

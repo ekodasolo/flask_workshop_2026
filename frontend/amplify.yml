@@ -3,14 +3,20 @@ frontend:
   phases:
     preBuild:
       commands:
+        - echo "=== preBuild phase ==="
+        - pwd
+        - cd frontend
+        - pwd
         - npm ci
     build:
       commands:
+        - echo "=== build phase ==="
+        - pwd
         - npm run build
   artifacts:
-    baseDirectory: dist
+    baseDirectory: frontend/dist
     files:
       - '**/*'
   cache:
     paths:
-      - node_modules/**/*
+      - frontend/node_modules/**/*
