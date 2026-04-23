@@ -4,6 +4,8 @@
 
 このハンズオンでは、Python の Web フレームワーク **Flask** と AWS の NoSQL データベース **DynamoDB** を使って、書籍レビュー REST API を実装します。
 
+<img width="1476" height="653" alt="image" src="https://github.com/user-attachments/assets/2deb13bf-6a88-4531-bccc-3a75f9d7c09d" />
+
 ### 学べること
 
 - Flask の基本（ルーティング、Blueprint、エラーハンドリング）
