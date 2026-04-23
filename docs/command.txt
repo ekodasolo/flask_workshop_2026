@@ -139,8 +139,9 @@ aws ecr get-login-password --region ap-northeast-1 \
   | docker login --username AWS --password-stdin ${ACCOUNT_ID}.dkr.ecr.ap-northeast-1.amazonaws.com
 
 # 5-4. Docker イメージにタグを付ける
-docker image tag book-review-api:latest \
-  ${ACCOUNT_ID}.dkr.ecr.ap-northeast-1.amazonaws.com/${ECR_REPO}:${IMAGE_TAG}
+docker image tag book-review-api:latest ${ACCOUNT_ID}.dkr.ecr.ap-northeast-1.amazonaws.com/${ECR_REPO}:latest
+docker image tag book-review-api:latest ${ACCOUNT_ID}.dkr.ecr.ap-northeast-1.amazonaws.com/${ECR_REPO}:${IMAGE_TAG}
 
 # 5-5. ECR に push
+docker image push ${ACCOUNT_ID}.dkr.ecr.ap-northeast-1.amazonaws.com/${ECR_REPO}:latest
 docker image push ${ACCOUNT_ID}.dkr.ecr.ap-northeast-1.amazonaws.com/${ECR_REPO}:${IMAGE_TAG}
