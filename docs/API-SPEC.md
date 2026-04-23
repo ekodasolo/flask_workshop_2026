@@ -24,6 +24,15 @@
 3. 読んだことがあるメンバーが **レビューを投稿** する（評価とコメント）
 4. レビューを見たメンバーが **次に読む本を選ぶ参考にする**
 
+※サンプルアプリでの動作イメージ：本の一覧を表示し、本をみつける
+<img width="784" height="728" alt="image" src="https://github.com/user-attachments/assets/1792b80d-4474-4f09-869a-ce3188a258db" />
+
+※サンプルアプリでの動作イメージ：本のレビューを登録する
+<img width="769" height="353" alt="image" src="https://github.com/user-attachments/assets/f6868ef9-f7cb-43f0-82d9-0cf88b4ec199" />
+
+※サンプルアプリでの動作イメージ：本のレビューを参考にする
+<img width="779" height="715" alt="image" src="https://github.com/user-attachments/assets/42c20c6b-d6ad-4ecb-ad56-fab507406cfa" />
+
 ---
 
 ## DynamoDB テーブル設計
