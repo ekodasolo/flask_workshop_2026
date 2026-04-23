@@ -26,17 +26,17 @@ git clone https://github.com/ekodasolo/flask_workshop_2026
 
 ```bash
 cp -r flask_workshop_2026/starter flask_workshop_2026/working
-cd flask_workshop_2026/working
+cd flask_workshop_2026/working/app
 ```
 
 > **なぜコピーするのか**: `starter/` はオリジナルの骨格コードとして残しておきます。実装に詰まったときに元のコードを確認したり、最初からやり直したりできます。
 
 ### 0-4. ファイル構成を確認する
 
-`working/` ディレクトリの中身を確認しましょう。
+`working/app` ディレクトリの中身を確認しましょう。
 
 ```
-working/
+working/app
 ├── app.py              # Flask アプリ（一部 TODO あり）
 ├── routes/
 │   ├── books.py        # Books エンドポイント（TODO を実装する）
@@ -80,7 +80,7 @@ source .venv/bin/activate
 有効化されると、ターミナルのプロンプトの先頭に `(.venv)` と表示されます。
 
 ```
-(.venv) user@host:~/projects/flask_workshop/<user_name>/flask_workshop_2026/working$
+(.venv) user@host:~/projects/flask_workshop/<user_name>/flask_workshop_2026/working/app$
 ```
 
 > **重要**: ターミナルを開き直したら、毎回 `source .venv/bin/activate` を実行してください。有効化を忘れるとグローバル環境にパッケージがインストールされてしまいます。
@@ -98,7 +98,7 @@ cp .env.example .env
 `.env` をエディタで開き、`TABLE_NAME` を講師から指示されたテーブル名に書き換えます。
 
 ```
-TABLE_NAME=book-review-api-<あなたのユーザー名>
+TABLE_NAME=book-review-api-workshop-<あなたのユーザー名>-table
 ```
 
 > **`.env` ファイルとは**: アプリケーションの設定値を管理するファイルです。`python-dotenv` ライブラリが `.env` を読み込み、環境変数として使えるようにします。`app.py` の `load_dotenv()` がこの読み込みを行っています。
