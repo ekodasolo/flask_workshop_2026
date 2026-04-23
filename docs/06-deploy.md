@@ -119,6 +119,10 @@ docker image tag book-review-api:latest \
 ```bash
 docker image tag book-review-api:latest \
   <アカウントID>.dkr.ecr.ap-northeast-1.amazonaws.com/book-review-api-workshop-fuji-repo:fuji_1530
+
+docker image tag book-review-api:latest \
+  <アカウントID>.dkr.ecr.ap-northeast-1.amazonaws.com/book-review-api-workshop-fuji-repo:latest
+
 ```
 
 **コマンドの解説**:
@@ -134,6 +138,7 @@ docker image tag book-review-api:latest \
 
 ```bash
 docker image push <アカウントID>.dkr.ecr.ap-northeast-1.amazonaws.com/<ECRリポジトリ名>:<ユーザー名>_<hhmm>
+docker image push <アカウントID>.dkr.ecr.ap-northeast-1.amazonaws.com/<ECRリポジトリ名>:latest
 ```
 
 イメージのレイヤーが順番にアップロードされます。全てのレイヤーが `Pushed` になれば完了です。
