@@ -39,6 +39,8 @@ flask_workshop/
 
 ## 技術スタック
 
+<img width="1476" height="653" alt="image" src="https://github.com/user-attachments/assets/a9787271-3d04-4cd1-8a78-b14bd8c600f1" />
+
 | レイヤー | 技術 |
 |---------|------|
 | バックエンド | Python 3.13 / Flask 3.1 / boto3 |
