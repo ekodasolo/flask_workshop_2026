@@ -110,6 +110,48 @@ DynamoDB（NoSQL）:
   キー以外の属性は自由（アイテムごとに異なる属性を持てる）
 ```
 
+### キー・バリューストアとは — Python の辞書から考える
+
+Python の辞書（`dict`）では、キーを指定して値を出し入れする:
+
+```python
+# キーで値をセットする
+books = {}
+books['book-001'] = {'title': 'Clean Code', 'author': 'Robert C. Martin'}
+
+# キーで値を取得する
+print(books['book-001'])  # => {'title': 'Clean Code', ...}
+
+# キーで値を削除する
+del books['book-001']
+```
+
+DynamoDB はこの「キーで値を出し入れする」仕組みをクラウド上で提供するデータベース。辞書と同じ感覚で操作できるが、以下の違いがある:
+
+| | Python の辞書 | DynamoDB |
+|---|---|---|
+| キー | 1 つ（任意の型） | 2 つ（PK + SK、どちらも文字列） |
+| 保存先 | メモリ上 | AWS 上（永続化される） |
+| 検索 | キーの完全一致のみ | PK の完全一致 + SK の前方一致検索ができる |
+| 操作 | `dict[key]` / `del dict[key]` | `put_item` / `get_item` / `delete_item` / `query` |
+
+DynamoDB ではキーが **PK（パーティションキー）** と **SK（ソートキー）** の 2 つで構成される。Python の辞書に例えると、こんなイメージ:
+
+```python
+# Python の辞書で DynamoDB を再現すると...
+table = {}
+table[('BOOK#aaa-111', 'METADATA')] = {'title': 'Clean Code', ...}        # 書籍
+table[('BOOK#aaa-111', 'REVIEW#ccc-333')] = {'reviewer': 'Yohei', ...}    # レビュー
+
+# PK + SK の組み合わせで 1 件取得（= get_item）
+table[('BOOK#aaa-111', 'METADATA')]
+
+# PK が同じアイテムをまとめて取得（= query）
+# → ('BOOK#aaa-111', 'METADATA') と ('BOOK#aaa-111', 'REVIEW#ccc-333') の両方が取れる
+```
+
+SK にプレフィックス（`METADATA`、`REVIEW#`）を付けることで、同じ PK の下に異なる種類のデータをぶら下げて、種類ごとに絞り込める。これがシングルテーブル設計の基本的な考え方。
+
 ### キー設計 — PK と SK
 
 DynamoDB のテーブルは **PK（Partition Key）** と **SK（Sort Key）** の 2 つのキーでアイテムを識別します。
