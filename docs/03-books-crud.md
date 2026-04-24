@@ -5,6 +5,8 @@
 > - 「API エンドポイント > Books」 — 5 つのエンドポイントの一覧
 > - 「リクエスト / レスポンス仕様」の Books 部分 — 各エンドポイントの入出力フォーマット
 
+DynamoDBのAPIについては、必要に応じて以下のBoto3公式ドキュメントを参照してください。Boto3 Official Document: https://docs.aws.amazon.com/boto3/latest/reference/services/dynamodb/table/
+
 このパートでは、`routes/books.py` を開いて 5 つのエンドポイントを実装します。
 ファイルには各関数の雛形と TODO コメントが用意されているので、コメントの指示に従ってコードを書いていきましょう。
 
