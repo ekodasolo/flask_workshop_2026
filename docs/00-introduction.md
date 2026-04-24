@@ -180,7 +180,7 @@ BOOK#bbb-222        METADATA            リーダブルコード  Dustin Boswell
 
 ### Python から DynamoDB を操作する — boto3
 
-AWS のサービスを Python から操作するにはAWS SDK for Python-通称 **boto3** というライブラリを使います。DynamoDB のアイテム操作でよく使うメソッドを見ていきましょう。
+AWS のサービスを Python から操作するにはAWS SDK for Python-通称 **boto3** というライブラリを使います。(Boto (ボト) という名前は、アマゾン川に自生する淡水イルカに由来しています)。DynamoDB のアイテム操作でよく使うメソッドを見ていきましょう。
 
 #### テーブルへの接続
 
