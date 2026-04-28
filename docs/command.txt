@@ -127,11 +127,12 @@ ACCOUNT_ID=""       # 講師から案内される 12 桁の AWS アカウント 
 ECR_REPO=""         # 講師から案内される ECR リポジトリ名（例: book-review-api-workshop-fuji-repo）
 IMAGE_TAG=""        # ユーザー名_時刻（例: fuji_1530）
 
-# 5-1. Docker イメージをビルド
+# 5-1. Docker イメージをビルドしタグ付け
 docker image build -t book-review-api .
+docker image tag book-review-api:latest book-review-api:${IMAGE_TAG}
 
 # 5-2. ローカルでコンテナの起動を確認
-docker container run --rm -p 5000:5000 book-review-api
+docker container run --rm -p 5000:5000 book-review-api:${IMAGE_TAG}
 curl -v http://localhost:5000/
 
 # 5-3. ECR にログイン
